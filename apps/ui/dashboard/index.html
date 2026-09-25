@@ -445,31 +445,36 @@
       });
     }
 
+    const VOICE_FALLBACK = {
+      zh: ["zh-CN-XiaoxiaoNeural","zh-CN-YunxiNeural","zh-CN-YunyangNeural","zh-CN-XiaoyiNeural"],
+      en: ["en-US-AriaNeural","en-US-JennyNeural","en-US-ChristopherNeural","en-GB-RyanNeural","en-US-StudioNeural"],
+      ja: ["ja-JP-NanamiNeural","ja-JP-EmuNeural"],
+      ko: ["ko-KR-SunHiNeural","ko-KR-InNeural"],
+    };
+
     async function loadVoices() {
       const sel = document.getElementById("voice");
+      if (!sel) return;
+      let list = [];
       try {
         const res = await fetch(CORE + "/forge/voices");
-        if (!res.ok) throw new Error(String(res.status));
-        const data = await res.json();
-        const voices = data.voices || {};
-        const currentLang = detectLang(promptText());
-        const list = voices[currentLang] || voices.en || [];
-        sel.innerHTML = '<option value="">auto</option>';
-        const group = document.createElement("optgroup");
-        group.label = t("t.kindTts");
-        list.forEach(v => {
-          const o = document.createElement("option");
-          o.value = v; o.textContent = v;
-          group.appendChild(o);
-        });
-        sel.appendChild(group);
-      } catch (_) {
-        sel.innerHTML = '<option value="">auto</option>';
-      }
+        if (res.ok) {
+          const data = await res.json();
+          const voices = data.voices || {};
+          const lang = detectLang(promptText());
+          list = voices[lang] || voices.en || [];
+        }
+      } catch (_) {}
+      if (!list.length) list = VOICE_FALLBACK.en;
+      sel.innerHTML = '<option value="">auto</option>';
+      const group = document.createElement("optgroup");
+      group.label = "Voice";
+      list.forEach(v => { const o = document.createElement("option"); o.value = v; o.textContent = v; group.appendChild(o); });
+      sel.appendChild(group);
     }
     function detectLang(text) {
-      for (const ch of text) {
-        const code = ch.codePointAt(0);
+      for (let i = 0; i < text.length; i++) {
+        const code = text.codePointAt(i);
         if (0x3040 <= code && code <= 0x30FF) return "ja";
         if (0xAC00 <= code && code <= 0xD7A3) return "ko";
         if (0x4E00 <= code && code <= 0x9FFF) return "zh";

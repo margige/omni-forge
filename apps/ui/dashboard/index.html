@@ -53,9 +53,23 @@
     }
     .card:hover { border-color: rgba(88,166,255,.25); }
     .card h2 { font-size: clamp(14px, 2vw, 17px); font-weight: 700; margin-bottom: 14px; color: #c9d1d9; }
-
-    /* ---- Grid ---- */
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(380px, 100%), 1fr)); gap: 20px; }
+    /* Collapsible failover toggle */
+    .toggle-btn {
+      background: rgba(33,38,47,.8); color: #8b949e; border: 1px solid #30363d;
+      border-radius: 6px; padding: 4px 12px; font-size: 12px; cursor: pointer;
+      font-family: inherit; transition: all .2s; user-select: none;
+    }
+    .toggle-btn:hover { border-color: #58a6ff; color: #e2e2e8; }
+    .toggle-btn.open { color: #58a6ff; border-color: #58a6ff; }
+    .failover-panel { overflow: hidden; transition: max-height .35s ease, opacity .3s; max-height: 600px; opacity: 1; }
+    .failover-panel.closed { max-height: 0; opacity: 0; pointer-events: none; }
+    /* ---- Split layout: left input, right output ---- */
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; min-height: 500px; }
+    .panel { display: flex; flex-direction: column; }
+    .panel-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: #8b949e; margin-bottom: 10px; }
+    @media (max-width: 860px) {
+      .split { grid-template-columns: 1fr; }
+    }
 
     /* ---- Quota table ---- */
     table { width: 100%; border-collapse: collapse; }
@@ -171,17 +185,12 @@
     </header>
 
     <div class="grid">
-      <div class="card">
-        <h2 data-i18n="t.failover">Free-tier failover</h2>
-        <table>
-          <thead><tr><th>provider</th><th>status</th><th>requests / rpd</th><th>cooldown</th></tr></thead>
-          <tbody id="quotaRows"><tr><td colspan="4" class="muted">loading…</td></tr></tbody>
-        </table>
-        <div class="muted" id="quotaNote" style="font-size:12px;margin-top:8px"></div>
-      </div>
-
-      <div class="card">
-        <h2 data-i18n="t.quick">Quick generation</h2>
+      <!-- Left: Form panel -->
+      <div class="card panel">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <h2 style="margin:0" data-i18n="t.quick">Quick generation</h2>
+          <button class="toggle-btn" id="failoverToggle" onclick="toggleFailover()">▸ failover</button>
+        </div>
         <div class="chips" id="capChips"></div>
 
         <form id="genForm" class="form">
@@ -239,14 +248,29 @@
             </select>
           </div>
 
-           <button type="submit" id="submitBtn" data-i18n="t.generate" style="align-self:flex-start;padding:10px 28px">
-             <span class="spinner"></span>
-             <span class="label">Generate</span>
-           </button>
+          <button type="submit" id="submitBtn" data-i18n="t.generate" style="align-self:flex-start;padding:10px 28px">
+            <span class="spinner"></span>
+            <span class="label">Generate</span>
+          </button>
         </form>
         <div class="hint" id="kindHint"></div>
-        <div class="result" id="result"></div>
       </div>
+
+      <!-- Right: Output panel -->
+      <div class="card panel">
+        <div class="panel-label">Output</div>
+        <div id="result" style="flex:1;overflow-y:auto"></div>
+      </div>
+    </div>
+
+    <!-- Collapsible failover card (below the split) -->
+    <div id="failoverCard" class="card failover-panel">
+      <h2 data-i18n="t.failover">Free-tier failover</h2>
+      <table>
+        <thead><tr><th>provider</th><th>status</th><th>requests / rpd</th><th>cooldown</th></tr></thead>
+        <tbody id="quotaRows"><tr><td colspan="4" class="muted">loading…</td></tr></tbody>
+      </table>
+      <div class="muted" id="quotaNote" style="font-size:12px;margin-top:8px"></div>
     </div>
   </div>
 
@@ -607,12 +631,22 @@
       Array.from(sel.options).forEach(o => { const k = o.value; if (map[k] !== undefined) o.textContent = map[k]; });
     }
 
-    // Set chip active on init
+    function toggleFailover() {
+      const card = document.getElementById("failoverCard");
+      const btn = document.getElementById("failoverToggle");
+      const closed = card.classList.toggle("closed");
+      btn.textContent = closed ? "▸ failover" : "▾ failover";
+      btn.classList.toggle("open", !closed);
+    }
+
     async function init() {
       onKindChange();
       refreshQuota();
       loadCaps();
       loadModels();
+      // Start failover card collapsed
+      document.getElementById("failoverCard").classList.add("closed");
+      document.getElementById("failoverToggle").textContent = "▸ failover";
       setInterval(refreshQuota, 10000);
     }
     init();

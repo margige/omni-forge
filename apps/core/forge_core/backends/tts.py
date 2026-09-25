@@ -21,7 +21,10 @@ _CJK_VOICES = {
     "ko": "ko-KR-SunHiNeural",
 }
 
-_SENTENCE_RE = re.compile(r'(?<=[。！？.!?])(\s*)')
+#: Split on sentence-ending punctuation (keeping the delimiter attached).
+_SENTENCE_RE = re.compile(r'(?<=[。！？.!?])\s*')
+#: Two or more newlines mark a paragraph boundary.
+_PARAGRAPH_RE = re.compile(r'\n{2,}')
 
 
 def detect_lang(text: str) -> str:
@@ -61,22 +64,50 @@ def _xml_lang(voice: str) -> str:
     return f"{parts[0]}-{parts[1]}" if len(parts) >= 2 else voice
 
 
+def _prosody_for(sentence: str) -> tuple[str, str, str]:
+    """Return (pitch, rate, volume) attributes for a sentence based on its ending."""
+    stripped = sentence.strip()
+    if stripped.endswith("?"):
+        return ("+6%", "medium", "+0%")
+    if stripped.endswith("!"):
+        return ("+4%", "-6%", "+12%")
+    # Declarative: subtle natural variation based on sentence index handled by caller
+    return ("+1%", "medium", "+0%")
+
+
 def to_ssml(text: str, voice: str) -> str:
     """Convert plain text to expressive SSML.
 
-    Each sentence is wrapped in its own `<prosody>` tag with alternating
-    pitch so the rendering sounds naturally human, and a short pause
-    (`<break>`) separates sentences so long texts stay readable and rhythmic.
-    Works for arbitrarily long inputs — edge-tts streams every chunk.
+    Sentences are wrapped in `<prosody>` tags tuned by their punctuation
+    (rising pitch for questions, louder/faster for exclamations). Paragraphs
+    (separated by blank lines) receive a longer pause. All input is streamed
+    by edge-tts regardless of length.
     """
     lang = _xml_lang(voice)
-    sentences = [s.strip() for s in _SENTENCE_RE.split(text.strip()) if s.strip()]
-    prosodies = []
-    for i, sent in enumerate(sentences):
-        pitch = "+2%" if i % 2 == 0 else "-2%"
-        rate = "-8%" if i % 3 == 0 else "medium"
-        prosodies.append(f'<prosody pitch="{pitch}" rate="{rate}">{sent}</prosody>')
-    body = '<break time="450ms"/>'.join(prosodies)
+    paragraphs = _PARAGRAPH_RE.split(text.strip())
+    para_blocks = []
+    for para in paragraphs:
+        para = para.strip()
+        if not para:
+            continue
+        sentences = [s.strip() for s in _SENTENCE_RE.split(para) if s.strip()]
+        if not sentences:
+            continue
+        prosodies = []
+        for i, sent in enumerate(sentences):
+            pitch_base, rate_base, vol_base = _prosody_for(sent)
+            # Add subtle index-based variation so adjacent sentences don't sound identical
+            pitch_val = float(pitch_base.replace("%", "")) + (2 if i % 2 == 0 else -1)
+            vol_val = float(vol_base.replace("+", "").replace("%", ""))
+            if vol_base != "+0%":
+                vol_str = f"+{vol_val:.0f}%"
+            else:
+                vol_str = f"+{1 if i % 2 == 0 else 0}%"
+            prosodies.append(
+                f'<prosody pitch="{pitch_val:+.0f}%" rate="{rate_base}" volume="{vol_str}">{sent}</prosody>'
+            )
+        para_blocks.append('<break time="400ms"/>'.join(prosodies))
+    body = '<break time="900ms"/>'.join(para_blocks)
     return (
         f'<speak version="1.0" '
         f'xmlns="http://www.w3.org/2001/10/synthesis" '

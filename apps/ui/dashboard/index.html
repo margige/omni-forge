@@ -16,7 +16,6 @@
       display: flex; flex-direction: column;
       overflow-x: hidden;
     }
-    /* Subtle animated background gradient */
     body::before {
       content: '';
       position: fixed; inset: 0; z-index: -1;
@@ -29,7 +28,6 @@
 
     .shell { width: 100%; max-width: min(1200px, 100vw); margin: 0 auto; padding: clamp(16px, 3vw, 32px); display: flex; flex-direction: column; gap: 20px; flex: 1; }
 
-    /* ---- Header ---- */
     header { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; position: relative; }
     header h1 { font-size: clamp(22px, 4vw, 30px); font-weight: 800; letter-spacing: -.5px; }
     header h1 span { background: linear-gradient(135deg, #58a6ff, #a371f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
@@ -43,7 +41,6 @@
       border-radius: 6px; padding: 6px 10px; font-size: 13px; cursor: pointer;
     }
 
-    /* ---- Glass card ---- */
     .card {
       background: rgba(22,27,34,.75);
       backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
@@ -53,7 +50,8 @@
     }
     .card:hover { border-color: rgba(88,166,255,.25); }
     .card h2 { font-size: clamp(14px, 2vw, 17px); font-weight: 700; margin-bottom: 14px; color: #c9d1d9; }
-    /* Collapsible failover toggle */
+
+    /* Collapsible failover */
     .toggle-btn {
       background: rgba(33,38,47,.8); color: #8b949e; border: 1px solid #30363d;
       border-radius: 6px; padding: 4px 12px; font-size: 12px; cursor: pointer;
@@ -63,22 +61,21 @@
     .toggle-btn.open { color: #58a6ff; border-color: #58a6ff; }
     .failover-panel { overflow: hidden; transition: max-height .35s ease, opacity .3s; max-height: 600px; opacity: 1; }
     .failover-panel.closed { max-height: 0; opacity: 0; pointer-events: none; }
-    /* ---- Split layout: left input, right output ---- */
+
+    /* Split layout */
     .split { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; min-height: 500px; }
     .panel { display: flex; flex-direction: column; }
     .panel-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: #8b949e; margin-bottom: 10px; }
-    @media (max-width: 860px) {
-      .split { grid-template-columns: 1fr; }
-    }
+    @media (max-width: 860px) { .split { grid-template-columns: 1fr; } }
 
-    /* ---- Quota table ---- */
+    /* Quota table */
     table { width: 100%; border-collapse: collapse; }
     th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid rgba(48,54,61,.5); font-size: 13px; }
     th { color: #8b949e; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: .5px; }
     .bar { height: 6px; background: rgba(33,38,47,.8); border-radius: 3px; overflow: hidden; min-width: 44px; }
     .bar i { display: block; height: 100%; background: linear-gradient(90deg, #2ea043, #58a6ff); border-radius: 3px; transition: width .5s; }
 
-    /* ---- Chips ---- */
+    /* Chips */
     .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
     .chip {
       padding: 5px 14px; border-radius: 999px; font-size: 12px; font-weight: 600;
@@ -88,7 +85,7 @@
     .chip:hover { border-color: #58a6ff; color: #e2e2e8; }
     .chip.active { background: rgba(88,166,255,.15); border-color: #58a6ff; color: #58a6ff; }
 
-    /* ---- Form ---- */
+    /* Form */
     .form { display: flex; flex-direction: column; gap: 14px; }
     .form-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     .form-row.full { width: 100%; }
@@ -101,13 +98,14 @@
       outline: none; border-color: #58a6ff; box-shadow: 0 0 0 3px rgba(88,166,255,.15);
     }
     input[type="text"] { flex: 1 1 200px; min-width: 160px; }
-    textarea { resize: vertical; min-height: 80px; max-height: 40vh; }
+    /* Auto-resize textarea */
+    textarea { resize: none; min-height: 80px; max-height: 40vh; overflow: hidden; line-height: 1.6; }
     select { cursor: pointer; min-width: 140px; }
     select option { background: #161b22; color: #e2e2e8; }
     select.model-pick { flex: 1; min-width: 180px; }
     .model-state { font-size: 12px; color: #8b949e; white-space: nowrap; }
 
-    /* ---- Buttons ---- */
+    /* Buttons */
     button {
       background: linear-gradient(135deg, #1f6feb, #a371f7); border: none; color: #fff;
       font-weight: 700; cursor: pointer; position: relative; overflow: hidden;
@@ -120,12 +118,8 @@
     button.loading .label { opacity: .7; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .aspect-select { display: none; }
-    .voice-select { display: none; }
-
-    /* ---- Result area ---- */
+    /* Result area */
     .hint { margin-top: 10px; font-size: 13px; color: #8b949e; font-style: italic; }
-    .result { margin-top: 16px; }
     .bubble {
       background: rgba(10,14,20,.8); border: 1px solid rgba(48,54,61,.5);
       border-radius: 10px; padding: 16px; white-space: pre-wrap; overflow-wrap: anywhere;
@@ -134,33 +128,27 @@
     }
     .bubble img { max-width: 100%; border-radius: 8px; margin-top: 8px; display: block; transition: transform .3s; }
     .bubble img:hover { transform: scale(1.01); }
+    .bubble video { max-width: 100%; border-radius: 8px; margin-top: 8px; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
     .meta { margin-top: 10px; font-size: 12px; color: #8b949e; }
     .meta .tag { display: inline-block; background: rgba(88,166,255,.1); color: #58a6ff; padding: 2px 8px; border-radius: 4px; margin-right: 6px; font-size: 11px; }
 
-    /* ---- Audio player ---- */
+    /* Audio: user must click play */
     audio { width: 100%; margin-top: 8px; border-radius: 8px; accent-color: #58a6ff; }
-    .audio-wrap { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
-    .play-btn {
-      width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #1f6feb, #a371f7);
-      border: none; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;
-      font-size: 18px; transition: transform .2s, opacity .2s; flex-shrink: 0;
-    }
-    .play-btn:hover { transform: scale(1.1); }
-    .play-btn svg { width: 20px; height: 20px; fill: currentColor; }
 
-    /* ---- Search results ---- */
+    /* Video status */
+    .video-status { text-align: center; padding: 20px; }
+    .video-status .spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid rgba(88,166,255,.3); border-top-color: #58a6ff; border-radius: 50%; animation: spin .8s linear infinite; }
+    .video-status .job-id { font-family: monospace; font-size: 12px; color: #8b949e; margin-top: 8px; word-break: break-all; }
+
+    /* Search results */
     .results { list-style: none; padding: 0; margin-top: 12px; }
     .results li { margin: 8px 0; padding: 8px 10px; background: rgba(22,27,34,.5); border-radius: 6px; }
     .results a { color: #58a6ff; text-decoration: none; word-break: break-all; font-weight: 600; }
     .results a:hover { text-decoration: underline; }
 
-    /* ---- Status bar ---- */
-    .status-bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-    .provider-state { font-size: 12px; white-space: nowrap; }
-
-    /* ---- Scrollbar ---- */
+    /* Scrollbar */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
@@ -263,7 +251,7 @@
       </div>
     </div>
 
-    <!-- Collapsible failover card (below the split) -->
+    <!-- Collapsible failover card -->
     <div id="failoverCard" class="card failover-panel">
       <h2 data-i18n="t.failover">Free-tier failover</h2>
       <table>
@@ -302,7 +290,8 @@
         hintSearch:"Web search via SearXNG / DuckDuckGo / Bing.",
         hintAsr:"Speech-to-text needs Whisper (pip install faster-whisper + FORGE_WHISPER_BIN).",
         hintVideo:"Video needs FORGE_WAN_COMMAND (e.g. Wan 2.1).",
-        missingKeys:"cloud providers await API keys — register free keys, put them in .env, restart. Everything above works with zero keys."
+        missingKeys:"cloud providers await API keys — register free keys, put them in .env, restart. Everything above works with zero keys.",
+        generating:"Generating video…", jobId:"job", polling:"polling…",
       },
       zh: {
         langLabel:"语言", routerStatusDefault:"路由器…",
@@ -328,7 +317,8 @@
         hintSearch:"网页搜索经 SearXNG / DuckDuckGo / Bing。",
         hintAsr:"语音转文字需要 Whisper（pip install faster-whisper 并设置 FORGE_WHISPER_BIN）。",
         hintVideo:"视频需要 FORGE_WAN_COMMAND（如 Wan 2.1）。",
-        missingKeys:"云端提供商等待 API Key — 到各官网注册免费 Key 填进 .env 并重启即可解锁。上面的功能在零 Key 下也能正常使用。"
+        missingKeys:"云端提供商等待 API Key — 到各官网注册免费 Key 填进 .env 并重启即可解锁。上面的功能在零 Key 下也能正常使用。",
+        generating:"正在生成视频…", jobId:"任务ID", polling:"轮询中…",
       },
       ja: {
         langLabel:"言語", routerStatusDefault:"ルーター…",
@@ -354,7 +344,8 @@
         hintSearch:"検索は SearXNG / DuckDuckGo / Bing。",
         hintAsr:"音声認識には Whisper が必要（pip install faster-whisper と FORGE_WHISPER_BIN）。",
         hintVideo:"動画には FORGE_WAN_COMMAND（例: Wan 2.1）が必要。",
-        missingKeys:"クラウドプロバイダーは API キー待ち — 各サイトで無料キーを取得し .env に追記して再起動してください。上記機能はキーなしでも動作します。"
+        missingKeys:"クラウドプロバイダーは API キー待ち — 各サイトで無料キーを取得し .env に追記して再起動してください。上記機能はキーなしでも動作します。",
+        generating:"動画を生成中…", jobId:"ジョブID", polling:"ポーリング中…",
       },
       ko: {
         langLabel:"언어", routerStatusDefault:"라우터…",
@@ -380,7 +371,8 @@
         hintSearch:"검색은 SearXNG / DuckDuckGo / Bing.",
         hintAsr:"음성 인식은 Whisper 필요 (pip install faster-whisper + FORGE_WHISPER_BIN).",
         hintVideo:"비디오는 FORGE_WAN_COMMAND (예: Wan 2.1) 필요.",
-        missingKeys:"클라우드 프로바이더는 API 키 대기 중 — 각 사이트에서 무료 키를 받아 .env에 넣고 재시작하세요. 위 기능은 키 없이도 동작합니다."
+        missingKeys:"클라우드 프로바이더는 API 키 대기 중 — 각 사이트에서 무료 키를 받아 .env에 넣고 재시작하세요. 위 기능은 키 없이도 동작합니다.",
+        generating:"비디오를 생성 중…", jobId:"작업 ID", polling:"폴링 중…",
       }
     };
 
@@ -465,7 +457,6 @@
       document.getElementById("voiceRow").classList.toggle("hidden", kind !== "tts");
       document.getElementById("kindHint").textContent = t(HINTS[kind]);
       loadModels();
-      // update chips
       document.querySelectorAll("#capChips .chip").forEach((c, i) => {
         const k = ["chat","image","tts","search","asr","video"][i];
         c.classList.toggle("active", k === kind || (k === "chat" && kind === "chat"));
@@ -500,7 +491,7 @@
           (noKeys > 0 ? t("missingKeys") + " " : "") + t("quotaNote", data.model);
       } catch (err) {
         badge.textContent = t("routerOffline"); badge.className = "badge down";
-        rows.innerHTML = `<tr><td colspan="4" class="muted">${t("offlineRow", "forge up")}</td></tr>`;
+        rows.innerHTML = '<tr><td colspan="4" class="muted">' + t("offlineRow", "forge up") + '</td></tr>';
       }
     }
 
@@ -515,50 +506,74 @@
       if (!res.ok) throw new Error(JSON.stringify(j).slice(0, 300));
       const text = (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || "";
       const f = j._forge || {};
-      box.innerHTML = `<div class="bubble">${text.replace(/</g, "&lt;")}</div>` +
-        `<p class="meta">${t("chatProvider", f.provider || "?", f.model || "?")}</p>`;
+      box.innerHTML = '<div class="bubble">' + text.replace(/</g, "&lt;") + '</div>' +
+        '<p class="meta">' + t("chatProvider", f.provider || "?", f.model || "?") + '</p>';
       loadModels();
-    }
-
-    function playAudio(blob) {
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      audio.play().catch(() => {});
-      // clean up after playback ends
-      audio.addEventListener("ended", () => URL.revokeObjectURL(url), { once: true });
     }
 
     async function renderResult(box, kind, j) {
       if (kind === "image") {
-        box.innerHTML = `<div class="bubble"><img src="${CORE}${j.url}" alt="generated" /></div>` +
-          `<p class="meta"><span class="tag">${t("backendImage", j.backend, j.width, j.height)}</span></p>` +
-          (j._note ? `<p class="badge warn" style="margin-top:8px">${j._note}</p>` : "");
+        box.innerHTML = '<div class="bubble"><img src="' + CORE + j.url + '" alt="generated" /></div>' +
+          '<p class="meta"><span class="tag">' + t("backendImage", j.backend, j.width, j.height) + '</span></p>' +
+          (j._note ? '<p class="badge warn" style="margin-top:8px">' + j._note + '</p>' : "");
       } else if (kind === "tts") {
-        // Direct streaming playback — no download step
+        // User must click play — no auto-play
         try {
           const resp = await fetch(CORE + j.url);
           const blob = await resp.blob();
+          const url = URL.createObjectURL(blob);
           const audio = document.createElement("audio");
           audio.controls = true;
           audio.preload = "auto";
           audio.style.width = "100%";
-          audio.addEventListener("loadeddata", () => audio.play(), { once: true });
-          audio.src = URL.createObjectURL(blob);
-          box.innerHTML = `<div class="meta"><span class="tag">${t("backendTts", j.backend, j.voice || "auto")}</span></div>`;
+          audio.src = url;
+          box.innerHTML = '<div class="meta"><span class="tag">' + t("backendTts", j.backend, j.voice || "auto") + '</span></div>';
           box.appendChild(audio);
         } catch (_) {
-          box.innerHTML = `<a class="muted" href="${CORE}${j.url}">${t("download")}</a>
-            <p class="meta">${t("backendTts", j.backend, j.voice || "auto")}</p>`;
+          box.innerHTML = '<a class="muted" href="' + CORE + j.url + '">' + t("download") + '</a>' +
+            '<p class="meta">' + t("backendTts", j.backend, j.voice || "auto") + '</p>';
         }
+      } else if (kind === "video") {
+        // Poll for completion
+        const jobId = j.job_id;
+        box.innerHTML = '<div class="video-status"><div class="spinner"></div>' +
+          '<p style="margin-top:12px">' + t("generating") + '</p>' +
+          '<p class="job-id">' + t("job") + ': ' + jobId + '</p></div>';
+        await pollVideo(box, jobId);
       } else if (kind === "search") {
         const list = (j.results || []).map(r =>
-          `<li><a href="${r.url}" target="_blank" rel="noopener">${r.title}</a><br><span style="font-size:12px;color:#8b949e">${(r.snippet || "").replace(/</g, "&lt;")}</span></li>`).join("");
-        box.innerHTML = `<p class="meta">${t("searchMeta", j.backend || "?")}</p><ul class="results">${list || "<li class='muted'>…</li>"}</ul>`;
+          '<li><a href="' + r.url + '" target="_blank" rel="noopener">' + r.title + '</a><br><span style="font-size:12px;color:#8b949e">' + (r.snippet || "").replace(/</g, "&lt;") + '</span></li>').join("");
+        box.innerHTML = '<p class="meta">' + t("searchMeta", j.backend || "?") + '</p><ul class="results">' + (list || '<li class="muted">…</li>') + '</ul>';
       } else if (kind === "asr") {
-        box.innerHTML = `<p>${t("asrResult", j.language || "?")} <div class="bubble">${(j.text || "").replace(/</g, "&lt;")}</div></p>`;
+        const lang = j.language || "?";
+        box.innerHTML = '<p>' + t("asrResult", lang) + ' <div class="bubble">' + (j.text || "").replace(/</g, "&lt;") + '</div></p>';
       } else {
-        box.innerHTML = `<div class="bubble">${String(j).replace(/</g, "&lt;")}</div>`;
+        box.innerHTML = '<div class="bubble">' + String(j).replace(/</g, "&lt;") + '</div>';
       }
+    }
+
+    async function pollVideo(box, jobId) {
+      const maxAttempts = 120; // 4 minutes at 2s intervals
+      for (let i = 0; i < maxAttempts; i++) {
+        try {
+          const res = await fetch(CORE + "/v1/video/" + jobId);
+          const j = await res.json();
+          const job = j.job;
+          if (!job) { box.innerHTML = '<span class="badge down">' + t("error", "job not found") + '</span>'; return; }
+          if (job.status === "done") {
+            const result = job.result || {};
+            box.innerHTML = '<div class="bubble"><video controls src="' + CORE + result.url + '" style="max-width:100%;border-radius:8px;margin-top:8px" /></div>' +
+              '<p class="meta"><span class="tag">backend: ' + (result.backend || "wan") + '</span></p>';
+            return;
+          }
+          if (job.status === "error") {
+            box.innerHTML = '<span class="badge down">' + t("error", job.error || "unknown") + '</span>';
+            return;
+          }
+        } catch (_) {}
+        await new Promise(r => setTimeout(r, 2000));
+      }
+      box.innerHTML += '<p class="muted" style="margin-top:8px">' + t("generating") + '…</p>';
     }
 
     document.getElementById("genForm").addEventListener("submit", async (e) => {
@@ -576,8 +591,8 @@
           const q = encodeURIComponent(prompt);
           const j = await (await fetch(CORE + "/v1/search?q=" + q + "&limit=8")).json();
           const list = (j.results || []).map(r =>
-            `<li><a href="${r.url}" target="_blank" rel="noopener">${r.title}</a><br><span style="font-size:12px;color:#8b949e">${(r.snippet || "").replace(/</g, "&lt;")}</span></li>`).join("");
-          box.innerHTML = `<p class="meta">${t("searchMeta", j.backend || "?")}</p><ul class="results">${list || "<li class='muted'>…</li>"}</ul>`;
+            '<li><a href="' + r.url + '" target="_blank" rel="noopener">' + r.title + '</a><br><span style="font-size:12px;color:#8b949e">' + (r.snippet || "").replace(/</g, "&lt;") + '</span></li>').join("");
+          box.innerHTML = '<p class="meta">' + t("searchMeta", j.backend || "?") + '</p><ul class="results">' + (list || '<li class="muted">…</li>') + '</ul>';
           return;
         }
         if (kind === "asr") {
@@ -585,24 +600,25 @@
           if (!file) throw new Error("no file");
           const fd = new FormData(); fd.append("file", file);
           const j = await (await fetch(CORE + "/v1/asr", { method: "POST", body: fd })).json();
-          box.innerHTML = `<p>${t("asrResult", j.language || "?")} <div class="bubble">${(j.text || "").replace(/</g, "&lt;")}</div></p>`;
+          if (!j.text) throw new Error(j.error || "transcription failed");
+          box.innerHTML = '<p>' + t("asrResult", j.language || "?") + ' <div class="bubble">' + (j.text || "").replace(/</g, "&lt;") + '</div></p>';
           return;
         }
-         let body;
-         if (kind === "tts") {
-           body = { text: prompt, voice: document.getElementById("voice").value || undefined };
-         } else {
-           body = Object.assign({ prompt, aspect },
-             document.getElementById("modelPick").value.startsWith("openrouter/")
-               ? { backend: "openrouter", model: document.getElementById("modelPick").value.slice("openrouter/".length) }
-               : {});
-         }
-         const res = await fetch(CORE + "/v1/" + kind, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+        let body;
+        if (kind === "tts") {
+          body = { text: prompt, voice: document.getElementById("voice").value || undefined };
+        } else {
+          body = Object.assign({ prompt, aspect },
+            document.getElementById("modelPick").value.startsWith("openrouter/")
+              ? { backend: "openrouter", model: document.getElementById("modelPick").value.slice("openrouter/".length) }
+              : {});
+        }
+        const res = await fetch(CORE + "/v1/" + kind, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
         const j = await res.json();
         if (!res.ok) throw new Error(JSON.stringify(j));
         await renderResult(box, kind, j);
       } catch (err) {
-        box.innerHTML = `<span class="badge down">${t("error", err.message)}</span>`;
+        box.innerHTML = '<span class="badge down">' + t("error", err.message) + '</span>';
       } finally {
         btn.classList.remove("loading"); btn.disabled = false;
       }
@@ -610,6 +626,14 @@
 
     document.getElementById("kind").addEventListener("change", onKindChange);
     document.getElementById("modelPick").addEventListener("change", onModelChange);
+
+    // Auto-resize textarea
+    const promptEl = document.getElementById("prompt");
+    promptEl.addEventListener("input", function() {
+      this.style.height = "auto";
+      this.style.height = Math.min(this.scrollHeight, 40 * 16) + "px";
+    });
+
     const saved = localStorage.getItem("forge-lang");
     const nav = (navigator.language || "en").toLowerCase();
     document.getElementById("lang").value = saved || (nav.startsWith("zh") ? "zh" : nav.startsWith("ja") ? "ja" : nav.startsWith("ko") ? "ko" : "en");
@@ -620,10 +644,8 @@
       localStorage.setItem("forge-lang", LANG);
       document.querySelectorAll("[data-i18n]").forEach(el => el.textContent = t(el.dataset.i18n));
       document.querySelectorAll("[data-i18n-ph]").forEach(el => el.placeholder = t(el.dataset.i18nPh));
-      // translate select options
       translateOptions("kind", {chat:t("t.kindChat"),image:t("t.kindImage"),tts:t("t.kindTts"),search:t("t.kindSearch"),asr:t("t.kindAsr"),video:t("t.kindVideo")});
       translateOptions("aspect", {"1:1":"1:1","16:9":"16:9","9:16":"9:16","4:3":"4:3","3:4":"3:4"});
-      // translate button label
       const btnLabel = document.querySelector("#submitBtn .label");
       if (btnLabel) btnLabel.textContent = t("t.generate");
       onKindChange(); refreshQuota(); loadCaps(); loadModels();
@@ -648,7 +670,6 @@
       refreshQuota();
       loadCaps();
       loadModels();
-      // Start failover card collapsed
       document.getElementById("failoverCard").classList.add("closed");
       document.getElementById("failoverToggle").textContent = "▸ failover";
       setInterval(refreshQuota, 10000);

@@ -89,12 +89,12 @@ omni-forge 是一个**免费优先、本地优先的多模态生成栈**，为 o
 
 | 目标 | 结果 |
 | --- | --- |
-| `api.github.com:443` | ✅ 通（有延迟 ~14s/请求） |
-| `github.com:443`（git smart-HTTP / 网页） | ❌ 复位/TCP 失败 |
-| `objects.githubusercontent.com:443` | ✅ TCP 通（大文件被限速 ~8KB/s） |
-| `ssh.github.com:443` | ✅ TCP + SSH 握手均通 |
-| winget 安装 gh | ⏱ 沙箱内静默挂起 |
-| `github.com` 仓库创建前 curl | ❌ 失败 |
+| `api.github.com:443` | OK 通（有延迟 ~14s/请求） |
+| `github.com:443`（git smart-HTTP / 网页） | FAIL 复位/TCP 失败 |
+| `objects.githubusercontent.com:443` | OK TCP 通（大文件被限速 ~8KB/s） |
+| `ssh.github.com:443` | OK TCP + SSH 握手均通 |
+| winget 安装 gh | 挂起 沙箱内静默超时 |
+| `github.com` 仓库创建前 curl | FAIL 失败 |
 
 ### 5.2 采用的绕行上传方案（全程不触碰被封锁的 github.com）
 1. **鉴权**：使用用户提供的 Personal Access Token（classic，账号 `margige`）。
@@ -108,7 +108,7 @@ omni-forge 是一个**免费优先、本地优先的多模态生成栈**，为 o
    + `git push -u origin main` → **6 秒完成**，远程 head 与本地 `69e1e8f` 一致，
    两个 commit 均在远程可见。
 
-> ⚠️ 安全提醒：上传完成后 token 已不再需要，请到
+> [!] 安全提醒：上传完成后 token 已不再需要，请到
 > github.com/settings/tokens 注销该 token（`ghp_kjy…`）。SSH 密钥
 > `omni-forge-local-push` 如不再使用也可在 settings/keys 中删除。
 
@@ -117,7 +117,7 @@ omni-forge 是一个**免费优先、本地优先的多模态生成栈**，为 o
 ## 6. 仓库状态
 
 - 本地：`main` @ `69e1e8f`（5e55768 首提交 + 69e1e8f 多语言/工具化），工作树干净
-- 远程：`origin/main` = `69e1e8f` ✓
+- 远程：`origin/main` = `69e1e8f`（与本地一致）
 - CI：#1 queued（随推送自动触发；结论以 GitHub Actions 页面最终结果为准）
 
 ### 关键文件索引

@@ -23,6 +23,7 @@ class ProviderConfig:
     priority: int = 100
     api_key_env: str | None = None
     models: list[str] = field(default_factory=list)
+    image_models: list[str] = field(default_factory=list)
     local: bool = False
     keyless: bool = False
     rpd: int | None = None
@@ -90,6 +91,7 @@ def load_config(path: str | Path | None = None) -> RouterConfig:
             priority=int(p.get("priority", 100)),
             api_key_env=p.get("api_key_env"),
             models=list(p.get("models", [])),
+            image_models=list(p.get("image_models", [])),
             local=bool(p.get("local", False)),
             keyless=bool(p.get("keyless", False)),
             rpd=p.get("rpd"),

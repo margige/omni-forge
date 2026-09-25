@@ -253,6 +253,7 @@ class ForgeRouter:
             "local": False,
             "healthy": any(p["healthy"] for p in status.values()),
             "auto": True,
+            "kind": "chat",
         }]
         for provider in self.providers:
             provider_status = status[provider.name]
@@ -267,6 +268,19 @@ class ForgeRouter:
                         "local": provider.cfg.local,
                         "healthy": provider_status["healthy"],
                         "auto": False,
+                        "kind": "chat",
+                    }
+                )
+            for model in provider.cfg.image_models:
+                entries.append(
+                    {
+                        "model": f"{provider.name}/{model}",
+                        "provider": provider.name,
+                        "label": model,
+                        "local": provider.cfg.local,
+                        "healthy": provider_status["healthy"],
+                        "auto": False,
+                        "kind": "image",
                     }
                 )
         return {"model": self.config.model, "entries": entries, "providers": status}

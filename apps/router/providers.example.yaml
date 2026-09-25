@@ -49,6 +49,7 @@ providers:
     api_key_env: OPENROUTER_API_KEY
     priority: 60
     models: [nvidia/nemotron-3-super-120b-a12b:free]
+    image_models: [bytedance-seed/seedream-4.5]
 
   - name: github-models
     base_url: https://models.inference.ai.azure.com/v1
@@ -73,6 +74,7 @@ providers:
     keyless: true
     priority: 100
     models: [openai-fast]
+    image_models: []
     rpm: 60
     timeout: 60
     # keyless: chat works with zero config; keyed tiers above always win when present

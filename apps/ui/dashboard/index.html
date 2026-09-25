@@ -588,12 +588,16 @@
           box.innerHTML = `<p>${t("asrResult", j.language || "?")} <div class="bubble">${(j.text || "").replace(/</g, "&lt;")}</div></p>`;
           return;
         }
-        const body = Object.assign({ prompt, aspect },
-          document.getElementById("modelPick").value.startsWith("openrouter/")
-            ? { backend: "openrouter", model: document.getElementById("modelPick").value.slice("openrouter/".length) }
-            : {});
-        if (kind === "tts") body.voice = document.getElementById("voice").value || undefined;
-        const res = await fetch(CORE + "/v1/" + kind, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+         let body;
+         if (kind === "tts") {
+           body = { text: prompt, voice: document.getElementById("voice").value || undefined };
+         } else {
+           body = Object.assign({ prompt, aspect },
+             document.getElementById("modelPick").value.startsWith("openrouter/")
+               ? { backend: "openrouter", model: document.getElementById("modelPick").value.slice("openrouter/".length) }
+               : {});
+         }
+         const res = await fetch(CORE + "/v1/" + kind, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
         const j = await res.json();
         if (!res.ok) throw new Error(JSON.stringify(j));
         await renderResult(box, kind, j);

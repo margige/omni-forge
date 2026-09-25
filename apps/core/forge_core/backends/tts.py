@@ -7,6 +7,7 @@ Both write a file and return its URL.
 from __future__ import annotations
 
 import asyncio
+import re
 import shutil
 
 from ..config import CoreConfig
@@ -19,6 +20,8 @@ _CJK_VOICES = {
     "ja": "ja-JP-NanamiNeural",
     "ko": "ko-KR-SunHiNeural",
 }
+
+_SENTENCE_RE = re.compile(r'(?<=[。！？.!?])(\s*)')
 
 
 def detect_lang(text: str) -> str:
@@ -52,6 +55,37 @@ def pick_voice(text: str, requested: str | None, default_en: str) -> str:
     return _CJK_VOICES.get(detect_lang(text), default_en)
 
 
+def _xml_lang(voice: str) -> str:
+    """Extract language-region from a voice name, e.g. zh-CN-XiaoxiaoNeural -> zh-CN."""
+    parts = voice.split("-")
+    return f"{parts[0]}-{parts[1]}" if len(parts) >= 2 else voice
+
+
+def to_ssml(text: str, voice: str) -> str:
+    """Convert plain text to expressive SSML.
+
+    Each sentence is wrapped in its own `<prosody>` tag with alternating
+    pitch so the rendering sounds naturally human, and a short pause
+    (`<break>`) separates sentences so long texts stay readable and rhythmic.
+    Works for arbitrarily long inputs — edge-tts streams every chunk.
+    """
+    lang = _xml_lang(voice)
+    sentences = [s.strip() for s in _SENTENCE_RE.split(text.strip()) if s.strip()]
+    prosodies = []
+    for i, sent in enumerate(sentences):
+        pitch = "+2%" if i % 2 == 0 else "-2%"
+        rate = "-8%" if i % 3 == 0 else "medium"
+        prosodies.append(f'<prosody pitch="{pitch}" rate="{rate}">{sent}</prosody>')
+    body = '<break time="450ms"/>'.join(prosodies)
+    return (
+        f'<speak version="1.0" '
+        f'xmlns="http://www.w3.org/2001/10/synthesis" '
+        f'xml:lang="{lang}">'
+        f'<voice name="{voice}">'
+        f'{body}</voice></speak>'
+    )
+
+
 class EdgeTTSBackend(Backend):
     name = "edge-tts"
     capability = "tts"
@@ -70,8 +104,9 @@ class EdgeTTSBackend(Backend):
         import edge_tts
 
         voice = pick_voice(text, voice, self.config.edge_voice)
+        ssml = to_ssml(text, voice)
         audio = b""
-        communicate = edge_tts.Communicate(text, voice)
+        communicate = edge_tts.Communicate(ssml, voice, rate="-5%", volume="+0%")
         async for chunk in communicate.stream():
             if chunk["type"] == "audio":
                 audio += chunk["data"]

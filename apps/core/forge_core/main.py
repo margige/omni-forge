@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import base64
+import os
 
+import httpx
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -44,6 +46,50 @@ app.state.registry.register(image_backends.OpenRouterImageBackend(config))
 app.state.registry.register(vision_backends.VisionBackend(config))
 
 app.mount("/media", StaticFiles(directory=str(config.output_dir)), name="media")
+
+#: Router URL for prompt-enrichment LLM calls; empty disables enrichment.
+_ROUTER_URL = os.environ.get("FORGE_ROUTER_URL", "http://127.0.0.1:4010")
+
+_PROMPT_ENHANCE_SYSTEM = (
+    "You are an expert image-generation prompt engineer. "
+    "Given the user's brief description, expand it into a rich, highly detailed "
+    "image-generation prompt that covers: main subject and its appearance, "
+    "setting and environment, lighting (type, direction, color), composition "
+    "(framing, angle, depth of field), color palette and mood, artistic style "
+    "(medium, reference artists if applicable), and technical details "
+    "(resolution, rendering style). "
+    "Return ONLY the expanded prompt as plain text — no explanation, no tags, no prefix."
+)
+
+async def _enrich_prompt(text: str) -> str:
+    """Expand a brief prompt into a richly described one via the router LLM.
+
+    Falls back to the original text on any error so image generation is never
+    blocked by the enrichment step.
+    """
+    if not _ROUTER_URL:
+        return text
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.post(
+                f"{_ROUTER_URL}/v1/chat/completions",
+                json={
+                    "model": "forge-chat",
+                    "messages": [
+                        {"role": "system", "content": _PROMPT_ENHANCE_SYSTEM},
+                        {"role": "user", "content": text},
+                    ],
+                    "max_tokens": 256,
+                    "temperature": 0.7,
+                },
+            )
+            if resp.status_code != 200:
+                return text
+            data = resp.json()
+            content = data.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
+            return content if content else text
+    except Exception:  # noqa: BLE001 - fall back to original prompt
+        return text
 
 
 def _registry(request: Request) -> Registry:
@@ -106,20 +152,25 @@ async def health() -> dict:
 
 
 @app.post("/v1/image")
-@app.post("/v1/image")
 async def create_image(body: ImageRequest, request: Request) -> dict:
     """Generate an image.
+
+    The prompt is first expanded by the router LLM into a richly detailed
+    description (subject, lighting, composition, mood, style, medium) so
+    the image backend produces a deeply-understood result. If enrichment
+    fails or the router is unavailable the original prompt is used.
 
     If the caller explicitly forced a paid backend (e.g. OpenRouter) and that
     backend rejects the request because credits are required, fall back to the
     free default backend automatically and surface the note to the caller.
     """
+    prompt = await _enrich_prompt(body.prompt)
     backend = body.backend
     try:
-        return await _run_chain(_registry(request), "image", backend, prompt=body.prompt, aspect=body.aspect, model=body.model)
+        return await _run_chain(_registry(request), "image", backend, prompt=prompt, aspect=body.aspect, model=body.model)
     except HTTPException as exc:
         if exc.status_code == 503 and backend and "payment" in str(exc.detail).lower():
-            result = await _run_chain(_registry(request), "image", None, prompt=body.prompt, aspect=body.aspect, model=body.model)
+            result = await _run_chain(_registry(request), "image", None, prompt=prompt, aspect=body.aspect, model=body.model)
             result["_note"] = "OpenRouter image generation requires paid credits — served by the free default backend instead."
             return result
         raise

@@ -128,6 +128,11 @@ async def forge_providers(request: Request) -> dict:
     return {"providers": _router(request).status()}
 
 
+@app.get("/forge/models")
+async def forge_models(request: Request) -> dict:
+    return _router(request).models_catalog()
+
+
 @app.get("/")
 async def root() -> RedirectResponse:
     return RedirectResponse(url="/forge/")

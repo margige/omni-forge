@@ -24,6 +24,7 @@ class ProviderConfig:
     api_key_env: str | None = None
     models: list[str] = field(default_factory=list)
     local: bool = False
+    keyless: bool = False
     rpd: int | None = None
     rpm: int | None = None
     timeout: int | None = None
@@ -37,10 +38,26 @@ class ProviderConfig:
 
     @property
     def resolved(self) -> bool:
-        return self.local or bool(self.api_key)
+        return self.local or self.keyless or bool(self.api_key)
 
     def is_resolved(self) -> bool:
         return self.resolved
+
+    @property
+    def missing_key(self) -> bool:
+        """A cloud provider declared a key env var but it is still unset."""
+        return bool(self.api_key_env) and not self.api_key
+
+    @property
+    def timeout_s(self) -> float | None:
+        """Per-provider HTTP timeout. Locals fail fast (4s) so a dead ollama
+        never blocks failover behind the full router timeout; clouds keep the
+        router default unless they declare their own."""
+        if self.timeout:
+            return float(self.timeout)
+        if self.local:
+            return 4.0
+        return None
 
     @property
     def default_model(self) -> str | None:
@@ -74,6 +91,7 @@ def load_config(path: str | Path | None = None) -> RouterConfig:
             api_key_env=p.get("api_key_env"),
             models=list(p.get("models", [])),
             local=bool(p.get("local", False)),
+            keyless=bool(p.get("keyless", False)),
             rpd=p.get("rpd"),
             rpm=p.get("rpm"),
             timeout=p.get("timeout"),

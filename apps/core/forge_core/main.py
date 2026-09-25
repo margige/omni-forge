@@ -5,6 +5,7 @@ from __future__ import annotations
 import base64
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -21,6 +22,12 @@ from .jobs import JobStore
 
 config = load_config()
 app = FastAPI(title="omni-forge core", version=VERSION)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.state.registry = Registry()
 app.state.jobs = JobStore()
 
@@ -32,6 +39,8 @@ app.state.registry.register(tts_backends.PiperBackend(config))
 app.state.registry.register(asr_backends.WhisperBackend(config))
 app.state.registry.register(search_backends.SearXNGSearchBackend(config))
 app.state.registry.register(search_backends.DuckDuckGoSearchBackend(config))
+app.state.registry.register(search_backends.BingSearchBackend(config))
+app.state.registry.register(image_backends.OpenRouterImageBackend(config))
 app.state.registry.register(vision_backends.VisionBackend(config))
 
 app.mount("/media", StaticFiles(directory=str(config.output_dir)), name="media")
@@ -63,6 +72,7 @@ class ImageRequest(BaseModel):
     prompt: str
     aspect: str = "1:1"
     backend: str | None = None
+    model: str | None = None
 
 
 class TTSRequest(BaseModel):
@@ -96,8 +106,23 @@ async def health() -> dict:
 
 
 @app.post("/v1/image")
+@app.post("/v1/image")
 async def create_image(body: ImageRequest, request: Request) -> dict:
-    return await _run_chain(_registry(request), "image", body.backend, prompt=body.prompt, aspect=body.aspect)
+    """Generate an image.
+
+    If the caller explicitly forced a paid backend (e.g. OpenRouter) and that
+    backend rejects the request because credits are required, fall back to the
+    free default backend automatically and surface the note to the caller.
+    """
+    backend = body.backend
+    try:
+        return await _run_chain(_registry(request), "image", backend, prompt=body.prompt, aspect=body.aspect, model=body.model)
+    except HTTPException as exc:
+        if exc.status_code == 503 and backend and "payment" in str(exc.detail).lower():
+            result = await _run_chain(_registry(request), "image", None, prompt=body.prompt, aspect=body.aspect, model=body.model)
+            result["_note"] = "OpenRouter image generation requires paid credits — served by the free default backend instead."
+            return result
+        raise
 
 
 @app.post("/v1/tts")

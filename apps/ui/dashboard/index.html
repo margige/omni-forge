@@ -7,87 +7,121 @@
   <style>
     :root { color-scheme: dark; }
     * { box-sizing: border-box; }
+    html, body { height: 100%; }
     body {
       font: 14px/1.5 system-ui, sans-serif;
-      margin: 0; padding: 24px; background: #0f1115; color: #e6e6e6;
+      margin: 0; padding: clamp(12px, 2.5vw, 24px);
+      background: #0f1115; color: #e6e6e6;
+      min-height: 100dvh; display: flex; flex-direction: column;
     }
-    header { display: flex; align-items: baseline; gap: 12px; }
-    header h1 { margin: 0 0 20px; font-size: 20px; }
+    .shell { width: 100%; max-width: min(1280px, 100vw); margin: 0 auto; display: flex; flex-direction: column; gap: 14px; flex: 1; }
+    header { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+    header h1 { margin: 0; font-size: clamp(16px, 3vw, 20px); }
     header h1 span { color: #58a6ff; }
     .spacer { flex: 1; }
-    .badge { font-size: 12px; padding: 2px 8px; border-radius: 999px; }
+    .badge { font-size: 12px; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
     .ok { background: #1f6f3f; color: #d2ffe0; }
+    .warn { background: #6e4b0a; color: #ffe9c2; }
     .down { background: #8b1e1e; color: #ffd9d9; }
-    .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; }
+    .muted { color: #8b949e; }
+    .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: clamp(12px, 2vw, 16px); min-width: 0; }
     table { width: 100%; border-collapse: collapse; margin-top: 8px; }
     th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #21262d; }
     th { color: #8b949e; font-weight: 600; }
-    .bar { height: 8px; background: #21262d; border-radius: 4px; overflow: hidden; }
+    .bar { height: 8px; background: #21262d; border-radius: 4px; overflow: hidden; min-width: 48px; }
     .bar i { display: block; height: 100%; background: linear-gradient(90deg, #2ea043, #58a6ff); }
-    form { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-    input, select, button {
+    form { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; align-items: center; }
+    input, select, button, textarea {
       background: #21262d; color: #e6e6e6; border: 1px solid #30363d;
-      border-radius: 6px; padding: 8px 12px; font-size: 14px;
+      border-radius: 6px; padding: 8px 12px; font-size: 14px; font-family: inherit;
     }
-    input[type="text"] { flex: 1; min-width: 240px; }
+    input[type="text"], textarea { flex: 1 1 260px; min-width: 220px; width: auto; }
+    textarea { resize: vertical; min-height: 40px; max-height: 45vh; }
     button { background: #1f6feb; border-color: #1f6feb; cursor: pointer; font-weight: 600; }
     button:hover { background: #388bfd; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
-    @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
-    img.result { max-width: 100%; border-radius: 8px; margin-top: 12px; }
-    .muted { color: #8b949e; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(460px, 100%), 1fr)); gap: clamp(12px, 2vw, 16px); }
+    img.result { max-width: 100%; height: auto; border-radius: 8px; margin-top: 12px; }
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .cap { display: flex; align-items: center; gap: 6px; }
+    .hint { margin-top: 10px; font-size: 13px; }
+    .bubble { background: #10151d; border: 1px solid #30363d; border-radius: 8px;
+             padding: 12px; margin-top: 10px; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .results { list-style: none; padding: 0; margin: 8px 0 0; }
+    .results li { margin: 8px 0; overflow-wrap: anywhere; }
+    .results a { color: #58a6ff; text-decoration: none; word-break: break-all; }
+    .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    select.model-pick { max-width: 100%; }
+    .muted.small { font-size: 12px; }
+    .provider-state { margin-left: auto; font-size: 12px; white-space: nowrap; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>omni<span>-forge</span></h1>
-    <span id="routerStatus" class="badge" data-i18n="routerStatusDefault">router …</span>
-    <span class="spacer"></span>
-    <span class="muted" data-i18n="langLabel">language</span>
-    <select id="lang">
-      <option value="en">English</option>
-      <option value="zh">简体中文</option>
-      <option value="ja">日本語</option>
-      <option value="ko">한국어</option>
-    </select>
-  </header>
+  <div class="shell">
+    <header>
+      <h1>omni<span>-forge</span></h1>
+      <span id="routerStatus" class="badge" data-i18n="routerStatusDefault">router …</span>
+      <span class="spacer"></span>
+      <span class="muted" data-i18n="langLabel">language</span>
+      <select id="lang">
+        <option value="en">English</option>
+        <option value="zh">简体中文</option>
+        <option value="ja">日本語</option>
+        <option value="ko">한국어</option>
+      </select>
+    </header>
 
-  <div class="grid">
-    <div class="card">
-      <h2 data-i18n="t.failover">Free-tier failover</h2>
-      <table>
-        <thead>
-          <tr>
-            <th data-i18n="t.provider">provider</th>
-            <th data-i18n="t.health">health</th>
-            <th data-i18n="t.requests">requests / rpd</th>
-            <th data-i18n="t.cooldown">cooldown</th>
-          </tr>
-        </thead>
-        <tbody id="quotaRows"><tr><td colspan="4" class="muted" data-i18n="t.loading">loading…</td></tr></tbody>
-      </table>
-      <div class="muted" id="quotaNote"></div>
-    </div>
+    <div class="grid">
+      <div class="card">
+        <h2 data-i18n="t.failover">Free-tier failover</h2>
+        <table>
+          <thead>
+            <tr>
+              <th data-i18n="t.provider">provider</th>
+              <th data-i18n="t.health">health</th>
+              <th data-i18n="t.requests">requests / rpd</th>
+              <th data-i18n="t.cooldown">cooldown</th>
+            </tr>
+          </thead>
+          <tbody id="quotaRows"><tr><td colspan="4" class="muted" data-i18n="t.loading">loading…</td></tr></tbody>
+        </table>
+        <div class="muted small" id="quotaNote"></div>
+      </div>
 
-    <div class="card">
-      <h2 data-i18n="t.quick">Quick generation</h2>
-      <form id="genForm">
-        <input type="text" id="prompt" data-i18n-ph="t.promptPh"
-               placeholder="a cyberpunk cat in the rain, neon, cinematic" />
-        <select id="kind">
-          <option value="image" data-i18n="t.kindImage">image</option>
-          <option value="tts" data-i18n="t.kindTts">speech</option>
-        </select>
-        <select id="aspect">
-          <option value="1:1">1:1</option>
-          <option value="16:9">16:9</option>
-          <option value="9:16">9:16</option>
-          <option value="4:3">4:3</option>
-          <option value="3:4">3:4</option>
-        </select>
-        <button data-i18n="t.generate">generate</button>
-      </form>
-      <div id="result"></div>
+      <div class="card">
+        <h2 data-i18n="t.quick">Quick generation</h2>
+        <div class="chips" id="capChips"></div>
+
+        <form id="genForm">
+          <div class="row" id="modelRow" style="width:100%">
+            <label class="muted" for="modelPick" data-i18n="t.model">model</label>
+            <select id="modelPick" class="model-pick">
+              <option value="forge-chat">forge-chat · auto</option>
+            </select>
+            <span class="provider-state muted" id="providerState"></span>
+          </div>
+          <input type="text" id="prompt" data-i18n-ph="t.promptPh"
+                 placeholder="a cyberpunk cat in the rain, neon, cinematic" />
+          <input type="file" id="audioFile" accept="audio/*" style="display:none" />
+          <select id="kind">
+            <option value="chat" data-i18n="t.kindChat">chat</option>
+            <option value="image" data-i18n="t.kindImage">image</option>
+            <option value="tts" data-i18n="t.kindTts">speech</option>
+            <option value="search" data-i18n="t.kindSearch">search</option>
+            <option value="asr" data-i18n="t.kindAsr">transcribe</option>
+            <option value="video" data-i18n="t.kindVideo">video</option>
+          </select>
+          <select id="aspect" style="display:none">
+            <option value="1:1">1:1</option>
+            <option value="16:9">16:9</option>
+            <option value="9:16">9:16</option>
+            <option value="4:3">4:3</option>
+            <option value="3:4">3:4</option>
+          </select>
+          <button data-i18n="t.generate">generate</button>
+        </form>
+        <div class="hint muted" id="kindHint"></div>
+        <div id="result"></div>
+      </div>
     </div>
   </div>
 
@@ -99,61 +133,111 @@
         langLabel: "language", routerStatusDefault: "router …",
         "t.failover": "Free-tier failover", "t.provider": "provider", "t.health": "health",
         "t.requests": "requests / rpd", "t.cooldown": "cooldown", "t.loading": "loading…",
-        "t.quick": "Quick generation", "t.promptPh": "a cyberpunk cat in the rain, neon, cinematic",
-        "t.kindImage": "image", "t.kindTts": "speech", "t.generate": "generate",
+        "t.quick": "Quick generation", "t.promptPh": "ask or describe — e.g. a cyberpunk cat in the rain",
+        "t.kindChat": "chat", "t.kindImage": "image", "t.kindTts": "speech",
+        "t.kindSearch": "search", "t.kindAsr": "transcribe", "t.kindVideo": "video",
+        "t.generate": "generate", "t.model": "model",
         routerOk: "router ok", routerOffline: "router offline",
-        ok: "ok", down: "down",
+        ok: "ok", down: "unavailable", nokey: "no key", "local": "local", auto: "auto failover",
+        modelStateOk: "available", modelStateDown: "unavailable now",
         offlineRow: "router offline — run {0}",
-        quotaNote: "model: {0} — the router pounds the highest-priority free tier until it cools, then fails over.",
+        quotaNote: "model: {0} — highest-priority free tier serves until it cools, then failover.",
         working: "working…", download: "download mp3",
         backendImage: "backend: {0} · {1}×{2}", backendTts: "backend: {0} · voice: {1}",
+        chatProvider: "served by: {0} · {1}", asrResult: "transcript ({0}):", searchMeta: "backend: {0}",
         error: "error: {0}",
+        capOff: "{0} not available",
+        hintChat: "chat runs on the router — pick a model below, or forge-chat for auto failover.",
+        hintImage: "image via Pollinations (free, no key) or local ComfyUI.",
+        hintTts: "speech via edge-tts (free, no key).",
+        hintSearch: "web search via SearXNG / DuckDuckGo / Bing.",
+        hintAsr: "speech-to-text needs Whisper (pip install faster-whisper + FORGE_WHISPER_BIN).",
+        hintVideo: "video needs FORGE_WAN_COMMAND (e.g. Wan 2.1).",
+        missingKeys: "cloud providers await API keys — register free keys at their sites, put them in .env, then restart. Everything above keeps working with zero keys."
       },
       zh: {
         langLabel: "语言", routerStatusDefault: "路由器…",
         "t.failover": "免费额度自动切换", "t.provider": "提供商", "t.health": "状态",
         "t.requests": "请求 / 日额度", "t.cooldown": "冷却", "t.loading": "加载中…",
-        "t.quick": "快速生成", "t.promptPh": "雨中的赛博朋克猫，霓虹，电影感",
-        "t.kindImage": "图片", "t.kindTts": "语音", "t.generate": "生成",
+        "t.quick": "快速生成", "t.promptPh": "输入问题或描述 — 如：雨中的赛博朋克猫",
+        "t.kindChat": "对话", "t.kindImage": "图片", "t.kindTts": "语音",
+        "t.kindSearch": "搜索", "t.kindAsr": "语音转文字", "t.kindVideo": "视频",
+        "t.generate": "生成", "t.model": "模型",
         routerOk: "路由器在线", routerOffline: "路由器离线",
-        ok: "正常", down: "失效",
+        ok: "正常", down: "不可用", nokey: "待填 Key", "local": "本地", auto: "自动故障转移",
+        modelStateOk: "可用", modelStateDown: "当前不可用",
         offlineRow: "路由器离线 — 运行 {0}",
-        quotaNote: "模型：{0} — 路由器会优先使用最高优先级的免费档，额度冷却后自动切换到下一个。",
+        quotaNote: "模型：{0} — 优先使用最高优先级免费档，额度用尽冷却后自动切换。",
         working: "生成中…", download: "下载 MP3",
         backendImage: "后端：{0} · {1}×{2}", backendTts: "后端：{0} · 音色：{1}",
+        chatProvider: "由 {0} · {1} 服务", asrResult: "识别结果（{0}）：", searchMeta: "后端：{0}",
         error: "错误：{0}",
+        capOff: "{0} 暂不可用",
+        hintChat: "对话走路由器 — 选择下方模型，或选 forge-chat 自动故障转移。",
+        hintImage: "图片经 Pollinations（免费免 Key）或本地 ComfyUI。",
+        hintTts: "语音经 edge-tts（免费免 Key）。",
+        hintSearch: "网页搜索经 SearXNG / DuckDuckGo / Bing。",
+        hintAsr: "语音转文字需要 Whisper（pip install faster-whisper 并设置 FORGE_WHISPER_BIN）。",
+        hintVideo: "视频需要 FORGE_WAN_COMMAND（如 Wan 2.1）。",
+        missingKeys: "云端提供商等待 API Key — 到各官网注册免费 Key 填进 .env 并重启即可解锁。上面的功能在零 Key 下也能正常使用。"
       },
       ja: {
         langLabel: "言語", routerStatusDefault: "ルーター…",
         "t.failover": "無料枠フェイルオーバー", "t.provider": "プロバイダー", "t.health": "状態",
         "t.requests": "リクエスト / 日次枠", "t.cooldown": "クールダウン", "t.loading": "読み込み中…",
-        "t.quick": "クイック生成", "t.promptPh": "雨の夜のサイバーパンク猫、ネオン、シネマティック",
-        "t.kindImage": "画像", "t.kindTts": "音声", "t.generate": "生成",
+        "t.quick": "クイック生成", "t.promptPh": "質問または説明 — 例:雨の夜のサイバーパンク猫",
+        "t.kindChat": "チャット", "t.kindImage": "画像", "t.kindTts": "音声",
+        "t.kindSearch": "検索", "t.kindAsr": "音声認識", "t.kindVideo": "動画",
+        "t.generate": "生成", "t.model": "モデル",
         routerOk: "ルーター稼働中", routerOffline: "ルーター停止中",
-        ok: "正常", down: "利用不可",
+        ok: "正常", down: "利用不可", nokey: "キー未設定", "local": "ローカル", auto: "自動フェイルオーバー",
+        modelStateOk: "利用可能", modelStateDown: "現在利用不可",
         offlineRow: "ルーター停止中 — {0} を実行",
-        quotaNote: "モデル: {0} — 最優先の無料枠を使い切り、クールダウン後に次のプロバイダーへ順次切り替えます。",
+        quotaNote: "モデル: {0} — 最優先の無料枠を使い切り、クールダウン後に次へ順次切り替えます。",
         working: "生成中…", download: "MP3 をダウンロード",
         backendImage: "バックエンド: {0} · {1}×{2}", backendTts: "バックエンド: {0} · 音声: {1}",
+        chatProvider: "{0} · {1} が応答", asrResult: "認識結果（{0}）:", searchMeta: "バックエンド: {0}",
         error: "エラー: {0}",
+        capOff: "{0} は利用できません",
+        hintChat: "チャットはルーター経由 — 以下のモデルを選択。forge-chat は自動フェイルオーバー。",
+        hintImage: "画像は Pollinations（無料・キー不要）またはローカル ComfyUI。",
+        hintTts: "音声は edge-tts（無料・キー不要）。",
+        hintSearch: "検索は SearXNG / DuckDuckGo / Bing。",
+        hintAsr: "音声認識には Whisper が必要（pip install faster-whisper と FORGE_WHISPER_BIN）。",
+        hintVideo: "動画には FORGE_WAN_COMMAND（例: Wan 2.1）が必要。",
+        missingKeys: "クラウドプロバイダーは API キー待ち — 各サイトで無料キーを取得し .env に追記して再起動してください。上記機能はキーなしでも動作します。"
       },
       ko: {
         langLabel: "언어", routerStatusDefault: "라우터…",
         "t.failover": "무료 할당량 자동 전환", "t.provider": "프로바이더", "t.health": "상태",
         "t.requests": "요청 / 일일 할당량", "t.cooldown": "쿨다운", "t.loading": "로딩 중…",
-        "t.quick": "빠른 생성", "t.promptPh": "비 속의 사이버펑크 고양이, 네온, 시네마틱",
-        "t.kindImage": "이미지", "t.kindTts": "음성", "t.generate": "생성",
+        "t.quick": "빠른 생성", "t.promptPh": "질문 또는 설명 — 예:비 속의 사이버펑크 고양이",
+        "t.kindChat": "대화", "t.kindImage": "이미지", "t.kindTts": "음성",
+        "t.kindSearch": "검색", "t.kindAsr": "음성 인식", "t.kindVideo": "비디오",
+        "t.generate": "생성", "t.model": "모델",
         routerOk: "라우터 정상", routerOffline: "라우터 오프라인",
-        ok: "정상", down: "장애",
+        ok: "정상", down: "사용 불가", nokey: "키 미설정", "local": "로컬", auto: "자동 페일오버",
+        modelStateOk: "사용 가능", modelStateDown: "현재 사용 불가",
         offlineRow: "라우터 오프라인 — {0} 실행",
-        quotaNote: "모델: {0} — 최우선순위 무료 티어를 먼저 사용한 뒤 쿨다운되고, 다음 프로바이더로 자동 전환됩니다.",
+        quotaNote: "모델: {0} — 최우선순위 무료 티어를 사용한 뒤 쿨다운되고 다음으로 자동 전환됩니다.",
         working: "생성 중…", download: "MP3 다운로드",
         backendImage: "백엔드: {0} · {1}×{2}", backendTts: "백엔드: {0} · 음성: {1}",
+        chatProvider: "{0} · {1} 응답", asrResult: "인식 결과 ({0}):", searchMeta: "백엔드: {0}",
         error: "오류: {0}",
-      },
+        capOff: "{0} 사용 불가",
+        hintChat: "대화는 라우터 경유 — 아래에서 모델 선택, forge-chat은 자동 페일오버.",
+        hintImage: "이미지는 Pollinations (무료·키 불필요) 또는 로컬 ComfyUI.",
+        hintTts: "음성은 edge-tts (무료·키 불필요).",
+        hintSearch: "검색은 SearXNG / DuckDuckGo / Bing.",
+        hintAsr: "음성 인식은 Whisper 필요 (pip install faster-whisper + FORGE_WHISPER_BIN).",
+        hintVideo: "비디오는 FORGE_WAN_COMMAND (예: Wan 2.1) 필요.",
+        missingKeys: "클라우드 프로바이더는 API 키 대기 중 — 각 사이트에서 무료 키를 받아 .env에 넣고 재시작하세요. 위 기능은 키 없이도 동작합니다."
+      }
     };
 
     let LANG = "en";
+    let CAPS = {};
+    let MODEL_META = {}; // model value -> {label, provider, healthy, local}
     function t(key) {
       let s = (I18N[LANG] && I18N[LANG][key]) || I18N.en[key] || key;
       const args = Array.prototype.slice.call(arguments, 1);
@@ -161,17 +245,91 @@
       return s;
     }
 
-    function applyLang() {
-      const lang = document.getElementById("lang").value;
-      LANG = lang;
-      localStorage.setItem("forge-lang", lang);
-      document.querySelectorAll("[data-i18n]").forEach((el) => {
-        el.textContent = t(el.dataset.i18n);
+    function setBadge(el, cls, txt) { el.textContent = txt; el.className = "badge " + cls; }
+
+    async function loadCaps() {
+      try {
+        const res = await fetch(CORE + "/forge/health");
+        if (!res.ok) throw new Error(String(res.status));
+        CAPS = await res.json();
+      } catch (_) { CAPS = {}; }
+      renderCaps();
+    }
+
+    function capState(kind) {
+      const list = (CAPS.capabilities || {})[kind] || [];
+      const avail = list.some(b => b.available);
+      return { available: avail, names: list.map(b => b.available ? b.name : null).filter(Boolean) };
+    }
+
+    function renderCaps() {
+      const box = document.getElementById("capChips");
+      box.innerHTML = "";
+      const order = ["chat", "image", "tts", "search", "asr", "video"];
+      const labels = { chat: t("t.kindChat"), image: t("t.kindImage"), tts: t("t.kindTts"),
+        search: t("t.kindSearch"), asr: t("t.kindAsr"), video: t("t.kindVideo") };
+      order.forEach(k => {
+        const s = capState(k);
+        const d = document.createElement("span");
+        d.className = "badge " + (k === "chat" ? "ok" : s.available ? "ok" : "down");
+        d.textContent = labels[k] + (k === "chat" ? "●" : "");
+        if (s.names.length) d.title = s.names.join(", ");
+        box.appendChild(d);
+        let opt;
+        try { opt = document.querySelector("#kind option[value='" + k + "']"); } catch (_) {}
+        if (opt && k !== "chat" && k !== "image" && k !== "tts" && k !== "search" && !s.available) {
+          opt.disabled = true;
+        }
       });
-      document.querySelectorAll("[data-i18n-ph]").forEach((el) => {
-        el.placeholder = t(el.dataset.i18nPh);
-      });
-      refreshQuota();
+    }
+
+    async function loadModels() {
+      const pick = document.getElementById("modelPick");
+      try {
+        const res = await fetch("/forge/models");
+        if (!res.ok) throw new Error(String(res.status));
+        const data = await res.json();
+        MODEL_META = {};
+        const sel = pick.value || "forge-chat";
+        pick.innerHTML = "";
+        const add = (val, label, healthy) => {
+          const o = document.createElement("option");
+          o.value = val; o.textContent = label;
+          if (healthy === false) o.textContent += " · ⚠";
+          pick.appendChild(o);
+        };
+        data.entries.forEach(e => {
+          add(e.model, (e.local ? t("local") + " · " : "") + (e.auto ? "forge-chat · " + t("auto") : e.provider + ": " + e.label), e.healthy);
+          MODEL_META[e.model] = e;
+        });
+        pick.value = MODEL_META[sel] ? sel : "forge-chat";
+        onModelChange();
+      } catch (_) {
+        pick.innerHTML = '<option value="forge-chat">forge-chat · auto</option>';
+        MODEL_META = { "forge-chat": { label: "forge-chat", provider: "*", healthy: true } };
+      }
+    }
+
+    function onModelChange() {
+      const pick = document.getElementById("modelPick");
+      const state = document.getElementById("providerState");
+      const meta = MODEL_META[pick.value];
+      state.textContent = meta ? (meta.healthy ? t("modelStateOk") + (meta.local ? " · " + t("local") : "") : t("modelStateDown")) : "";
+      state.className = "provider-state muted" + (meta && !meta.healthy ? " badge down" : "");
+    }
+
+    const HINTS = { chat: "hintChat", image: "hintImage", tts: "hintTts", search: "hintSearch", asr: "hintAsr", video: "hintVideo" };
+    function onKindChange() {
+      const kind = document.getElementById("kind").value;
+      const prompt = document.getElementById("prompt");
+      const file = document.getElementById("audioFile");
+      const aspect = document.getElementById("aspect");
+      const modelRow = document.getElementById("modelRow");
+      prompt.style.display = kind === "asr" ? "none" : "";
+      file.style.display = kind === "asr" ? "" : "none";
+      aspect.style.display = kind === "image" ? "" : "none";
+      modelRow.style.display = kind === "chat" ? "" : "none";
+      document.getElementById("kindHint").textContent = t(HINTS[kind]);
     }
 
     async function refreshQuota() {
@@ -184,16 +342,23 @@
         badge.textContent = t("routerOk");
         badge.className = "badge ok";
         rows.innerHTML = "";
+        let noKeys = 0;
         data.providers.forEach(p => {
           const tr = document.createElement("tr");
           const pct = p.rpd ? Math.min(100, (p.requests_today / p.rpd) * 100) : 0;
-          tr.innerHTML = `<td>${p.name}</td>` +
-            `<td>${p.healthy ? '<span class="badge ok">' + t("ok") + '</span>' : '<span class="badge down">' + t("down") + '</span>'}</td>` +
-            `<td><div class="bar"><i style="width:${pct}%"></i></div>${p.requests_today}${p.rpd ? "/" + p.rpd : ""}</td>` +
-            `<td>${p.cooling_remaining}s</td>`;
+          if (p.missing_key) noKeys++;
+          let badgeHtml;
+          if (p.missing_key) badgeHtml = '<span class="badge warn">' + t("nokey") + "</span>";
+          else if (p.healthy) badgeHtml = '<span class="badge ok">' + t("ok") + "</span>";
+          else badgeHtml = '<span class="badge down">' + t("down") + "</span>";
+          tr.innerHTML = "<td>" + p.name + (p.local ? " (" + t("local") + ")" : "") + "</td>" +
+            "<td>" + badgeHtml + "</td>" +
+            "<td><div class='bar'><i style='width:" + pct + "%'></i></div>" + p.requests_today + (p.rpd ? "/" + p.rpd : "") + "</td>" +
+            "<td>" + p.cooling_remaining + "s</td>";
           rows.appendChild(tr);
         });
-        document.getElementById("quotaNote").textContent = t("quotaNote", data.model);
+        document.getElementById("quotaNote").textContent =
+          (noKeys > 0 ? t("missingKeys") + " " : "") + t("quotaNote", data.model);
       } catch (err) {
         badge.textContent = t("routerOffline");
         badge.className = "badge down";
@@ -201,24 +366,75 @@
       }
     }
 
+    async function runChat(prompt, box) {
+      const model = document.getElementById("modelPick").value;
+      const res = await fetch("/v1/chat/completions", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ model, messages: [{ role: "user", content: prompt }], stream: false }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(JSON.stringify(j).slice(0, 300));
+      const text = (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || "";
+      const f = j._forge || {};
+      box.innerHTML = `<div class="bubble">${text.replace(/</g, "&lt;")}</div>` +
+        `<p class="muted">${t("chatProvider", f.provider || "?", f.model || "?")}</p>`;
+      loadModels();
+    }
+
+    async function applyLang() {
+      const lang = document.getElementById("lang").value;
+      LANG = lang;
+      localStorage.setItem("forge-lang", lang);
+      document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = t(el.dataset.i18n); });
+      document.querySelectorAll("[data-i18n-ph]").forEach((el) => { el.placeholder = t(el.dataset.i18nPh); });
+      onKindChange();
+      refreshQuota();
+      loadCaps();
+      loadModels();
+    }
+
     document.getElementById("genForm").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const prompt = document.getElementById("prompt").value;
       const kind = document.getElementById("kind").value;
+      const prompt = document.getElementById("prompt").value;
       const aspect = document.getElementById("aspect").value;
       const box = document.getElementById("result");
       box.innerHTML = '<span class="muted">' + t("working") + "</span>";
       try {
-        const res = await fetch(`${CORE}/v1/${kind === "image" ? "image" : "tts"}`, {
+        if (kind === "chat") return await runChat(prompt, box);
+        if (kind === "search") {
+          const q = encodeURIComponent(prompt);
+          const j = await (await fetch(CORE + "/v1/search?q=" + q + "&limit=8")).json();
+          const list = (j.results || []).map(r =>
+            `<li><a href="${r.url}" target="_blank" rel="noopener">${r.title}</a><br><span class="muted">${(r.snippet || "").replace(/</g, "&lt;")}</span></li>`).join("");
+          box.innerHTML = `<p class="muted">${t("searchMeta", j.backend || "?")}</p><ul class="results">${list || "<li class=muted>…</li>"}</ul>`;
+          return;
+        }
+        if (kind === "asr") {
+          const file = document.getElementById("audioFile").files[0];
+          if (!file) throw new Error("no file");
+          const fd = new FormData(); fd.append("file", file);
+          const j = await (await fetch(CORE + "/v1/asr", { method: "POST", body: fd })).json();
+          box.innerHTML = `<p>${t("asrResult", j.language || "?")} <div class="bubble">${(j.text || "").replace(/</g, "&lt;")}</div></p>`;
+          return;
+        }
+        const res = await fetch(CORE + "/v1/" + (kind === "image" || kind === "tts" ? kind : kind), {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify(kind === "image" ? { prompt, aspect } : { text: prompt }),
+          body: JSON.stringify(kind === "image"
+            ? Object.assign({ prompt, aspect },
+                document.getElementById("modelPick").value.startsWith("openrouter/")
+                  ? { backend: "openrouter", model: document.getElementById("modelPick").value.slice("openrouter/".length) }
+                  : {})
+            : { text: prompt }),
         });
         const j = await res.json();
         if (!res.ok) throw new Error(JSON.stringify(j));
         if (kind === "image") {
-          box.innerHTML = `<img class="result" src="${j.url}" alt="${prompt}">` +
-            `<p class="muted">${t("backendImage", j.backend, j.width, j.height)}</p>`;
+          box.innerHTML = `<img class="result" src="${j.url}" alt="${prompt.replace(/"/g, "")}">` +
+            `<p class="muted">${t("backendImage", j.backend, j.width, j.height)}</p>` +
+            (j._note ? `<p class="badge warn">${j._note}</p>` : "");
         } else {
           box.innerHTML = `<a class="muted" href="${j.url}">${t("download")}</a> ` +
             `<p class="muted">${t("backendTts", j.backend, j.voice)}</p>`;
@@ -228,6 +444,8 @@
       }
     });
 
+    document.getElementById("kind").addEventListener("change", onKindChange);
+    document.getElementById("modelPick").addEventListener("change", onModelChange);
     const saved = localStorage.getItem("forge-lang");
     const nav = (navigator.language || "en").toLowerCase();
     document.getElementById("lang").value =

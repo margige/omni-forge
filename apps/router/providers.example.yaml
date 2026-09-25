@@ -48,7 +48,7 @@ providers:
     base_url: https://openrouter.ai/api/v1
     api_key_env: OPENROUTER_API_KEY
     priority: 60
-    models: [meta-llama/llama-3.3-70b-instruct:free]
+    models: [nvidia/nemotron-3-super-120b-a12b:free]
 
   - name: github-models
     base_url: https://models.inference.ai.azure.com/v1
@@ -67,6 +67,15 @@ providers:
     api_key_env: TOGETHER_API_KEY
     priority: 90
     models: [meta-llama/Llama-3.3-70B-Instruct-Turbo-Free]
+
+  - name: pollinations
+    base_url: https://text.pollinations.ai/openai
+    keyless: true
+    priority: 100
+    models: [openai-fast]
+    rpm: 60
+    timeout: 60
+    # keyless: chat works with zero config; keyed tiers above always win when present
 
   - name: localai
     base_url: http://127.0.0.1:8080/v1

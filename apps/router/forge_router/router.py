@@ -46,9 +46,86 @@ class ForgeRouter:
             out.append(provider)
         return out
 
+    def resolve_requested(self, requested: str | None) -> tuple[Provider, str] | None:
+        """Map a client model name to an explicit upstream, or None for the chain.
+
+        ``forge-chat`` / absent → None, meaning the normal failover chain.
+
+        ``name/model``          → exactly that provider and that upstream model,
+                                  even if the model is not in its configured list.
+
+        Exact model name        → the single provider that lists it.
+
+        Anything else           → None, so the request falls through to the chain
+                                  (providers that know the name serve it).
+        """
+        if not requested or requested == "forge-chat":
+            return None
+        if "/" in requested:
+            provider_name, _, model = requested.partition("/")
+            for provider in self.providers:
+                if provider.name == provider_name:
+                    return provider, model
+        for provider in self.providers:
+            if requested in provider.cfg.models:
+                return provider, requested
+        return None
+
+    async def _send(
+        self, provider: Provider, payload: dict, model: str, *, stream: bool = False
+    ) -> tuple[httpx.Response | None, str | None]:
+        """One attempt at one provider. Returns (response, error).
+
+        The response is only handed back once it is a 2xx; on any failure the
+        ledger is updated and the error string is returned instead.
+        """
+        body = provider.build_payload(payload, model)
+        if stream:
+            body["stream"] = True
+        request = self.client.build_request(
+            "POST",
+            provider.chat_url(),
+            headers=provider.headers(),
+            json=body,
+            timeout=provider.cfg.timeout_s or self.config.timeout,
+        )
+        if not await provider.reserve():
+            return None, f"{provider.name}: rpm limited"
+        try:
+            response = await self.client.send(request, stream=stream)
+        except httpx.HTTPError as exc:
+            self.ledger.record_error(provider.name)
+            return None, f"{provider.name}: {exc}"
+        if response.status_code >= 400:
+            raw = await response.aread()
+            await response.aclose()
+            return None, self._handle_failure(
+                provider, response.status_code, raw.decode("utf-8", "replace")
+            )
+        return response, None
+
     # ── non-streaming ────────────────────────────────────────────────────
     async def complete(self, payload: dict) -> tuple[dict, Provider]:
         requested = payload.get("model")
+        pinned = self.resolve_requested(requested)
+        if pinned is not None:
+            target, upstream = pinned
+            provider = next((p for p in self.candidates() if p.name == target.name), None)
+            if provider is None:
+                raise errors.NoProviderAvailable(
+                    self.report(
+                        f"{target.name}: pinned model unavailable (missing key, cooling or quota)"
+                    )
+                )
+            response, err = await self._send(provider, payload, upstream)
+            if err:
+                raise errors.NoProviderAvailable(self.report(err))
+            data = response.json()
+            tokens = int(((data.get("usage") or {}).get("total_tokens")) or 0)
+            self.ledger.record_success(provider.name, tokens)
+            data["_forge"] = {"provider": provider.name, "model": upstream}
+            return data, provider
+
         candidates = self.candidates()
         if not candidates:
             raise errors.NoProviderAvailable(self.report())
@@ -56,26 +133,10 @@ class ForgeRouter:
         last_error: str | None = None
         for provider in candidates:
             model = provider.default_model(requested)
-            body = provider.build_payload(payload, model)
-            if not await provider.reserve():
-                last_error = f"{provider.name}: rpm limited"
+            response, err = await self._send(provider, payload, model)
+            if err:
+                last_error = err
                 continue
-            try:
-                response = await self.client.post(
-                    provider.chat_url(),
-                    headers=provider.headers(),
-                    json=body,
-                    timeout=provider.cfg.timeout or self.config.timeout,
-                )
-            except httpx.HTTPError as exc:
-                self.ledger.record_error(provider.name)
-                last_error = f"{provider.name}: {exc}"
-                continue
-
-            if response.status_code >= 400:
-                last_error = self._handle_failure(provider, response.status_code, response.text)
-                continue
-
             data = response.json()
             tokens = int(((data.get("usage") or {}).get("total_tokens")) or 0)
             self.ledger.record_success(provider.name, tokens)
@@ -92,6 +153,22 @@ class ForgeRouter:
         never corrupts an in-flight stream.
         """
         requested = payload.get("model")
+        pinned = self.resolve_requested(requested)
+        if pinned is not None:
+            target, upstream = pinned
+            provider = next((p for p in self.candidates() if p.name == target.name), None)
+            if provider is None:
+                raise errors.NoProviderAvailable(
+                    self.report(
+                        f"{target.name}: pinned model unavailable (missing key, cooling or quota)"
+                    )
+                )
+            response, err = await self._send(provider, payload, upstream, stream=True)
+            if err:
+                raise errors.NoProviderAvailable(self.report(err))
+            self.ledger.record_success(provider.name, 0)
+            return response, provider, upstream
+
         candidates = self.candidates()
         if not candidates:
             raise errors.NoProviderAvailable(self.report())
@@ -99,33 +176,10 @@ class ForgeRouter:
         last_error: str | None = None
         for provider in candidates:
             model = provider.default_model(requested)
-            body = provider.build_payload(payload, model)
-            body["stream"] = True
-            request = self.client.build_request(
-                "POST",
-                provider.chat_url(),
-                headers=provider.headers(),
-                json=body,
-                timeout=provider.cfg.timeout or self.config.timeout,
-            )
-            if not await provider.reserve():
-                last_error = f"{provider.name}: rpm limited"
+            response, err = await self._send(provider, payload, model, stream=True)
+            if err:
+                last_error = err
                 continue
-            try:
-                response = await self.client.send(request, stream=True)
-            except httpx.HTTPError as exc:
-                self.ledger.record_error(provider.name)
-                last_error = f"{provider.name}: {exc}"
-                continue
-
-            if response.status_code >= 400:
-                raw = await response.aread()
-                await response.aclose()
-                last_error = self._handle_failure(
-                    provider, response.status_code, raw.decode("utf-8", "replace")
-                )
-                continue
-
             self.ledger.record_success(provider.name, 0)
             return response, provider, model
 
@@ -153,6 +207,8 @@ class ForgeRouter:
                     "name": provider.name,
                     "local": provider.cfg.local,
                     "resolved": provider.cfg.is_resolved(),
+                    "missing_key": provider.cfg.missing_key,
+                    "model": provider.default_model(),
                     "priority": provider.cfg.priority,
                     "models": provider.cfg.models,
                     "requests_today": row.get("requests", 0),
@@ -179,5 +235,38 @@ class ForgeRouter:
             "error": "no provider available",
             "last_error": last_error,
             "local_available": any(p["local"] and p["resolved"] for p in providers),
+            "missing_keys": sorted(p["name"] for p in providers if p["missing_key"]),
             "providers": providers,
         }
+
+    def models_catalog(self) -> dict:
+        """Selectable models for the UI.
+
+        ``forge-chat`` is the logical chain entry; every other entry is
+        ``<provider>/<upstream-model>`` so the UI can pin a specific backend.
+        """
+        status = {p["name"]: p for p in self.status()}
+        entries = [{
+            "model": self.config.model,
+            "provider": "*",
+            "label": self.config.model,
+            "local": False,
+            "healthy": any(p["healthy"] for p in status.values()),
+            "auto": True,
+        }]
+        for provider in self.providers:
+            provider_status = status[provider.name]
+            if not provider_status["resolved"]:
+                continue
+            for model in provider.cfg.models:
+                entries.append(
+                    {
+                        "model": f"{provider.name}/{model}",
+                        "provider": provider.name,
+                        "label": model,
+                        "local": provider.cfg.local,
+                        "healthy": provider_status["healthy"],
+                        "auto": False,
+                    }
+                )
+        return {"model": self.config.model, "entries": entries, "providers": status}

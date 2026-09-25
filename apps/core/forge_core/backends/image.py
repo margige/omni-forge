@@ -2,12 +2,16 @@
 
 `pollinations` needs no account and no GPU — it is the zero-config free default.
 `comfyui` is the quality path: a local node graph you already trust.
+`openrouter` provides text-to-image models via the dedicated Image API
+(`POST /api/v1/images`), using the same OPENROUTER_API_KEY as the router.
 """
 
 from __future__ import annotations
 
 import asyncio
+import base64
 import json
+import os
 import random
 from urllib.parse import quote
 
@@ -105,3 +109,43 @@ class ComfyUIBackend(Backend):
                     "prompt_id": prompt_id,
                 }
         raise RuntimeError("comfyui produced no image output")
+
+
+class OpenRouterImageBackend(Backend):
+    name = "openrouter"
+    capability = "image"
+    _DEFAULT_MODEL = "bytedance-seed/seedream-4.5"
+
+    def __init__(self, config: CoreConfig):
+        self.config = config
+        self._client = httpx.AsyncClient(timeout=120, follow_redirects=True)
+        self._model = os.environ.get("OPENROUTER_IMAGE_MODEL") or self._DEFAULT_MODEL
+
+    def available(self) -> bool:
+        return bool(os.environ.get("OPENROUTER_API_KEY"))
+
+    async def run(self, *, prompt: str, aspect: str = "1:1", model: str | None = None, **_: object) -> dict:
+        slug = model or self._model
+        payload: dict = {"model": slug, "prompt": prompt, "aspect_ratio": aspect}
+        response = await self._client.post(
+            "https://openrouter.ai/api/v1/images",
+            headers={"Authorization": f"Bearer {os.environ['OPENROUTER_API_KEY']}", "Content-Type": "application/json"},
+            json=payload,
+        )
+        response.raise_for_status()
+        data = response.json()
+        image = data["data"][0]
+        raw = base64.b64decode(image["b64_json"])
+        suffix = ".png"
+        if image.get("media_type", "").endswith("jpeg"):
+            suffix = ".jpg"
+        elif image.get("media_type", "").endswith("webp"):
+            suffix = ".webp"
+        path = save_bytes(self.config.output_dir, raw, suffix, "image")
+        return {
+            "backend": self.name,
+            "path": str(path),
+            "url": media_url(path),
+            "width": image.get("width"),
+            "height": image.get("height"),
+        }

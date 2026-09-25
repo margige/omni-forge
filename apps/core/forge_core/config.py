@@ -21,6 +21,7 @@ class CoreConfig:
     router_base_url: str
     comfyui_base_url: str
     searxng_base_url: str
+    searxng_configured: bool
     comfy_workflow: Path | None
     piper_bin: str
     piper_model: str | None
@@ -42,6 +43,7 @@ def load() -> CoreConfig:
         router_base_url=_env("FORGE_ROUTER_URL", "http://127.0.0.1:4010/v1") or "",
         comfyui_base_url=_env("COMFYUI_BASE_URL", "http://127.0.0.1:8188") or "",
         searxng_base_url=_env("SEARXNG_BASE_URL", "http://127.0.0.1:8080") or "",
+        searxng_configured=_env("SEARXNG_BASE_URL") is not None,
         comfy_workflow=Path(workflow) if workflow else None,
         piper_bin=_env("FORGE_PIPER_BIN", "piper") or "piper",
         piper_model=_env("FORGE_PIPER_MODEL"),

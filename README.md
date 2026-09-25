@@ -35,22 +35,35 @@ dry. The caller only ever sees one model name: `forge-chat`.
 
 ## Quick start
 
+Zero config works out of the box for text/image/speech/search; optional API keys unlock more models.
+
 ```bash
 # 1. install (Windows: installers\install.ps1, else installers\install.sh)
 #    creates .venv, builds router+core, copies config templates
 ./installers/install.sh
 
-# 2. add the API keys you have (all optional) to .env and providers.yaml
+# 2. (optional) add API keys to .env — everything above is free and works without any key
 
 # 3. start the two services
-. .venv/bin/activate
+scripts\start-forge.ps1          # Windows PowerShell
+# or manually:
 python -m uvicorn forge_router.main:app --port 4010 &
 python -m uvicorn forge_core.main:app --port 4020 &
 
-# 4. check health + free-tier quota
+# 4. open the dashboard and generate
+open http://127.0.0.1:4010/forge/
 curl http://127.0.0.1:4010/forge/quota
 curl http://127.0.0.1:4020/forge/health
 ```
+
+That is it: the router exposes one logical model, `forge-chat`, which picks the best
+free tier automatically and fails over when a quota runs out.
+
+- **Chat** — `POST /v1/chat/completions` with `{"model":"forge-chat","messages":[...]}`. Pick a specific upstream (e.g. `openrouter/nvidia/nemotron-3-super-120b-a12b:free`) by name — see `/forge/models`.
+- **Image** — `POST /v1/image {"prompt":…}` (Pollinations, free) or set `backend:"openrouter"` + a model slug.
+- **Speech / Image / Search / Transcribe / Video** — same `/v1/<kind>` endpoints.
+
+With `bun` installed, `apps/cli` provides `forge up|down|status|doctor|quota|gen|mcp`.
 
 Alternatively one command brings up router, core, Ollama, SearXNG and Open WebUI:
 
@@ -58,8 +71,6 @@ Alternatively one command brings up router, core, Ollama, SearXNG and Open WebUI
 docker compose up -d          # + `--profile local` for ollama, `--profile gpu` for comfyui
 open http://127.0.0.1:4010/forge/   # built-in dashboard & quick generator
 ```
-
-With `bun` installed, `apps/cli` provides `forge up|down|status|doctor|quota|gen|mcp`.
 
 ## Use it from opencode
 

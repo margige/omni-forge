@@ -198,6 +198,13 @@
           </div>
 
           <div class="form-row hidden" id="voiceRow">
+            <select id="voiceLang" style="flex:0 0 100px">
+              <option value="auto">auto</option>
+              <option value="zh">中文</option>
+              <option value="en">English</option>
+              <option value="ja">日本語</option>
+              <option value="ko">한국어</option>
+            </select>
             <select id="voice" style="flex:1;min-width:160px">
               <option value="">auto</option>
             </select>
@@ -454,6 +461,7 @@
 
     async function loadVoices() {
       const sel = document.getElementById("voice");
+      const langSel = document.getElementById("voiceLang");
       if (!sel) return;
       let list = [];
       try {
@@ -461,8 +469,13 @@
         if (res.ok) {
           const data = await res.json();
           const voices = data.voices || {};
-          const lang = detectLang(promptText());
-          list = voices[lang] || voices.en || [];
+          const lang = langSel.value;
+          if (lang === "auto") {
+            const detected = detectLang(document.getElementById("prompt").value);
+            list = voices[detected] || voices.en || [];
+          } else {
+            list = voices[lang] || voices.en || [];
+          }
         }
       } catch (_) {}
       if (!list.length) list = VOICE_FALLBACK.en;
@@ -481,7 +494,10 @@
       }
       return "en";
     }
-    function promptText() { return document.getElementById("prompt").value; }
+
+    document.getElementById("prompt").addEventListener("input", () => {
+      if (document.getElementById("voiceLang").value === "auto") loadVoices();
+    });
 
     async function refreshQuota() {
       const badge = document.getElementById("routerStatus");

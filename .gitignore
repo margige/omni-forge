@@ -1,0 +1,42 @@
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# node
+node_modules/
+dist/
+build/
+*.tsbuildinfo
+!apps/mcp/dist/
+!apps/mcp/dist/index.js
+!apps/mcp/dist/index.d.ts
+
+# env / secrets
+.env
+.env.local
+*.key
+providers.yaml
+providers.local.yaml
+apps/router/providers.yaml
+
+# runtime state
+*.db
+*.sqlite
+*.sqlite3
+data/
+models/
+outputs/
+*.pid
+*.log
+
+# os / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

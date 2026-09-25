@@ -1,0 +1,21 @@
+{
+  "name": "@omni-forge/mcp",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "omni-forge Model Context Protocol server: image, video, tts, asr, search, vision, quota.",
+  "bin": { "forge-mcp": "dist/index.js" },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}

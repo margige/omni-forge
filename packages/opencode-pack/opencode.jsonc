@@ -1,0 +1,26 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "omni-forge": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Omni Forge",
+      "options": {
+        "baseURL": "http://127.0.0.1:4010/v1",
+        "apiKey": "forge-local"
+      },
+      "models": {
+        "forge-chat": {
+          "name": "Forge Chat (free-tier auto-failover)",
+          "reasoning": false
+        }
+      }
+    }
+  },
+  "mcp": {
+    "forge": {
+      "type": "local",
+      "command": ["forge", "mcp"],
+      "enabled": true
+    }
+  }
+}

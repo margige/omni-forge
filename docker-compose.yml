@@ -1,0 +1,83 @@
+name: omni-forge
+
+services:
+  router:
+    build:
+      context: .
+      dockerfile: Dockerfile.router
+    ports:
+      - "4010:4010"
+    environment:
+      FORGE_ROUTER_HOST: 0.0.0.0
+      FORGE_ROUTER_PORT: 4010
+    env_file:
+      - .env
+    volumes:
+      - router-data:/app/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:4010/healthz')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  core:
+    build:
+      context: .
+      dockerfile: Dockerfile.core
+    ports:
+      - "4020:4020"
+    environment:
+      FORGE_CORE_HOST: 0.0.0.0
+      FORGE_CORE_PORT: 4020
+      FORGE_ROUTER_URL: http://router:4010/v1
+      OLLAMA_BASE_URL: http://ollama:11434/v1
+      SEARXNG_BASE_URL: http://searxng:8080
+    env_file:
+      - .env
+    volumes:
+      - core-outputs:/app/outputs
+    depends_on:
+      router:
+        condition: service_healthy
+
+  openwebui:
+    image: ghcr.io/open-webui/open-webui:main
+    ports:
+      - "3000:8080"
+    environment:
+      OPENAI_API_BASE_URL: http://router:4010/v1
+      OPENAI_API_KEY: forge-local
+      DEFAULT_MODELS: forge-chat
+    volumes:
+      - openwebui-data:/app/backend/data
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    profiles: ["local"] # pulled up by `forge up --local`
+
+  searxng:
+    image: searxng/searxng:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - searxng-data:/etc/searxng
+
+  comfyui:
+    image: ghcr.io/comfyanonymous/comfyui:latest
+    ports:
+      - "8188:8188"
+    volumes:
+      - comfyui-data:/app/models
+    profiles: ["gpu"] # opt-in; needs a working GPU passthrough
+
+volumes:
+  router-data:
+  core-outputs:
+  openwebui-data:
+  ollama-data:
+  searxng-data:
+  comfyui-data:

@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>omni-forge</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body {
+      font: 14px/1.5 system-ui, sans-serif;
+      margin: 0; padding: 24px; background: #0f1115; color: #e6e6e6;
+    }
+    header { display: flex; align-items: baseline; gap: 12px; }
+    header h1 { margin: 0 0 20px; font-size: 20px; }
+    header h1 span { color: #58a6ff; }
+    .badge { font-size: 12px; padding: 2px 8px; border-radius: 999px; }
+    .ok { background: #1f6f3f; color: #d2ffe0; }
+    .down { background: #8b1e1e; color: #ffd9d9; }
+    .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #21262d; }
+    th { color: #8b949e; font-weight: 600; }
+    .bar { height: 8px; background: #21262d; border-radius: 4px; overflow: hidden; }
+    .bar i { display: block; height: 100%; background: linear-gradient(90deg, #2ea043, #58a6ff); }
+    form { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+    input, select, button {
+      background: #21262d; color: #e6e6e6; border: 1px solid #30363d;
+      border-radius: 6px; padding: 8px 12px; font-size: 14px;
+    }
+    input[type="text"] { flex: 1; min-width: 240px; }
+    button { background: #1f6feb; border-color: #1f6feb; cursor: pointer; font-weight: 600; }
+    button:hover { background: #388bfd; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+    @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+    img.result { max-width: 100%; border-radius: 8px; margin-top: 12px; }
+    .muted { color: #8b949e; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>omni<span>-forge</span></h1>
+    <span id="routerStatus" class="badge">router …</span>
+  </header>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Free-tier failover</h2>
+      <table>
+        <thead><tr><th>provider</th><th>health</th><th>requests / rpd</th><th>cooldown</th></tr></thead>
+        <tbody id="quotaRows"><tr><td colspan="4" class="muted">loading…</td></tr></tbody>
+      </table>
+      <div class="muted" id="quotaNote"></div>
+    </div>
+
+    <div class="card">
+      <h2>Quick generation</h2>
+      <form id="genForm">
+        <input type="text" id="prompt" placeholder="a cyberpunk cat in the rain, neon, cinematic" />
+        <select id="kind">
+          <option value="image">image</option>
+          <option value="tts">speech</option>
+        </select>
+        <select id="aspect">
+          <option value="1:1">1:1</option>
+          <option value="16:9">16:9</option>
+          <option value="9:16">9:16</option>
+          <option value="4:3">4:3</option>
+          <option value="3:4">3:4</option>
+        </select>
+        <button>generate</button>
+      </form>
+      <div id="result"></div>
+    </div>
+  </div>
+
+  <script>
+    const CORE = "http://127.0.0.1:4020";
+
+    async function refreshQuota() {
+      const badge = document.getElementById("routerStatus");
+      const rows = document.getElementById("quotaRows");
+      try {
+        const res = await fetch("/forge/quota");
+        if (!res.ok) throw new Error(String(res.status));
+        const data = await res.json();
+        badge.textContent = "router ok";
+        badge.className = "badge ok";
+        rows.innerHTML = "";
+        data.providers.forEach(p => {
+          const tr = document.createElement("tr");
+          const pct = p.rpd ? Math.min(100, (p.requests_today / p.rpd) * 100) : 0;
+          tr.innerHTML = `<td>${p.name}</td><td>${p.healthy ? '<span class="badge ok">ok</span>' : '<span class="badge down">down</span>'}</td>` +
+            `<td><div class="bar"><i style="width:${pct}%"></i></div>${p.requests_today}${p.rpd ? "/" + p.rpd : ""}</td>` +
+            `<td>${p.cooling_remaining}s</td>`;
+          rows.appendChild(tr);
+        });
+        document.getElementById("quotaNote").textContent =
+          "model: " + data.model + " — the router pounds the highest-priority free tier until it cools, then fails over.";
+      } catch (err) {
+        badge.textContent = "router offline";
+        badge.className = "badge down";
+        rows.innerHTML = `<tr><td colspan="4" class="muted">router offline — run <code>forge up</code></td></tr>`;
+      }
+    }
+
+    document.getElementById("genForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const prompt = document.getElementById("prompt").value;
+      const kind = document.getElementById("kind").value;
+      const aspect = document.getElementById("aspect").value;
+      const box = document.getElementById("result");
+      box.innerHTML = '<span class="muted">working…</span>';
+      try {
+        const res = await fetch(`${CORE}/v1/${kind === "image" ? "image" : "tts"}`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(kind === "image" ? { prompt, aspect } : { text: prompt }),
+        });
+        const j = await res.json();
+        if (!res.ok) throw new Error(JSON.stringify(j));
+        if (kind === "image") {
+          box.innerHTML = `<img class="result" src="${j.url}" alt="${prompt}"><p class="muted">backend: ${j.backend} · ${j.width}×${j.height}</p>`;
+        } else {
+          box.innerHTML = `<a class="muted" href="${j.url}">download mp3</a> <p class="muted">backend: ${j.backend} · voice: ${j.voice}</p>`;
+        }
+      } catch (err) {
+        box.innerHTML = `<span class="badge down">error: ${err.message}</span>`;
+      }
+    });
+
+    refreshQuota();
+    setInterval(refreshQuota, 10000);
+  </script>
+</body>
+</html>

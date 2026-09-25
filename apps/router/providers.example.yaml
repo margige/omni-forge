@@ -1,0 +1,75 @@
+# omni-forge provider pool (copy to apps/router/providers.yaml)
+
+router:
+  model: forge-chat
+  timeout: 120
+
+# ordered by priority: lower number wins, local is always last resort
+providers:
+  - name: ollama
+    base_url: http://127.0.0.1:11434/v1
+    local: true
+    priority: 1000
+    models: [qwen2.5:7b]
+
+  - name: gemini
+    base_url: https://generativelanguage.googleapis.com/v1beta/openai
+    api_key_env: GEMINI_API_KEY
+    priority: 10
+    models: [gemini-2.5-flash]
+    rpd: 200
+
+  - name: groq
+    base_url: https://api.groq.com/openai/v1
+    api_key_env: GROQ_API_KEY
+    priority: 20
+    models: [llama-3.3-70b-versatile]
+    rpm: 30
+
+  - name: cerebras
+    base_url: https://api.cerebras.ai/v1
+    api_key_env: CEREBRAS_API_KEY
+    priority: 30
+    models: [llama3.3-70b]
+
+  - name: nvidia
+    base_url: https://integrate.api.nvidia.com/v1
+    api_key_env: NVIDIA_API_KEY
+    priority: 40
+    models: [meta/llama-3.3-70b-instruct]
+
+  - name: mistral
+    base_url: https://api.mistral.ai/v1
+    api_key_env: MISTRAL_API_KEY
+    priority: 50
+    models: [mistral-small-latest]
+
+  - name: openrouter
+    base_url: https://openrouter.ai/api/v1
+    api_key_env: OPENROUTER_API_KEY
+    priority: 60
+    models: [meta-llama/llama-3.3-70b-instruct:free]
+
+  - name: github-models
+    base_url: https://models.inference.ai.azure.com/v1
+    api_key_env: GITHUB_MODELS_TOKEN
+    priority: 70
+    models: [gpt-4o-mini]
+
+  - name: huggingface
+    base_url: https://api-inference.huggingface.co/models
+    api_key_env: HF_TOKEN
+    priority: 80
+    models: [meta-llama/Llama-3.3-70B-Instruct]
+
+  - name: together
+    base_url: https://api.together.xyz/v1
+    api_key_env: TOGETHER_API_KEY
+    priority: 90
+    models: [meta-llama/Llama-3.3-70B-Instruct-Turbo-Free]
+
+  - name: localai
+    base_url: http://127.0.0.1:8080/v1
+    local: true
+    priority: 990
+    models: [ggml-localai]

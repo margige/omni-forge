@@ -1,0 +1,44 @@
+omni-forge
+Copyright 2026 omni-forge contributors
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+It incorporates or depends on third-party works that are NOT under Apache-2.0.
+When you redistribute this software (including via a container image), the
+license terms of those components still apply to them. The components below are
+referenced or bundled as optional dependencies / images:
+
+  - FastAPI (MIT) — https://github.com/fastapi/fastapi
+  - Starlette (BSD-3-Clause) — https://github.com/encode/starlette
+  - Uvicorn (BSD-3-Clause) — https://github.com/encode/uvicorn
+  - httpx (BSD-3-Clause) — https://github.com/encode/httpx
+  - Pydantic (MIT) — https://github.com/pydantic/pydantic
+  - PyYAML (MIT) — https://github.com/yaml/pyyaml
+  - edge-tts (GPL-3.0) — https://github.com/rany2/edge-tts
+      Optional runtime dependency for the `tts` capability.
+  - OpenAI Whisper (MIT) — https://github.com/openai/whisper
+      Optional CLI used for the `asr` capability.
+  - Piper TTS (MIT) — https://github.com/rhasspy/piper
+      Optional offline TTS backend.
+  - ComfyUI (GPL-3.0) — https://github.com/comfyanonymous/ComfyUI
+      Optional docker image / local backend for image generation. This program
+      does not link to ComfyUI; it speaks to its HTTP API. If you distribute a
+      bundle containing ComfyUI, GPL-3.0 obligations attach to that component.
+  - Ollama (MIT) — https://github.com/ollama/ollama
+      Optional local model runtime.
+  - LocalAI (MIT) — https://github.com/mudler/LocalAI
+      Optional local model runtime.
+  - SearXNG (AGPL-3.0) — https://github.com/searxng/searxng
+      Optional docker image for self-hosted search. AGPL obligations attach to
+      that component if distributed/modified.
+  - Open WebUI (custom, MIT-adjacent) — https://github.com/open-webui/open-webui
+      Optional docker image serving as the chat frontend. Check its repository
+      for the current license terms.
+  - Model Context Protocol SDK (MIT) — https://github.com/modelcontextprotocol/typescript-sdk
+  - Node.js / Bun (Node MIT, Bun MIT) — toolchain
+  - The Model Context Protocol trademark and names belong to their owners and
+      are not used to imply endorsement.
+
+Third-party model weights, API services and their providers' terms of service
+are the user's responsibility. This project only orchestrates requests the user
+configures.

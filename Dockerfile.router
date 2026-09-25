@@ -1,0 +1,9 @@
+FROM python:3.11-slim
+WORKDIR /app
+COPY apps/router/pyproject.toml ./apps/router/
+COPY apps/router/forge_router ./apps/router/forge_router
+COPY apps/ui/dashboard ./apps/ui/dashboard
+RUN pip install --no-cache-dir -e apps/router
+ENV FORGE_UI_DIR=/app/apps/ui/dashboard
+EXPOSE 4010
+CMD ["forge-router"]

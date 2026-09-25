@@ -1,0 +1,7 @@
+FROM python:3.11-slim
+WORKDIR /app
+COPY apps/core/pyproject.toml ./apps/core/
+COPY apps/core/forge_core ./apps/core/forge_core
+RUN pip install --no-cache-dir -e apps/core
+EXPOSE 4020
+CMD ["forge-core"]

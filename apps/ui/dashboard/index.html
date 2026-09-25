@@ -200,25 +200,6 @@
           <div class="form-row hidden" id="voiceRow">
             <select id="voice" style="flex:1;min-width:160px">
               <option value="">auto</option>
-              <optgroup label="中文">
-                <option>zh-CN-XiaoxiaoNeural</option>
-                <option>zh-CN-YunxiNeural</option>
-                <option>zh-CN-YunyangNeural</option>
-              </optgroup>
-              <optgroup label="English">
-                <option>en-US-AriaNeural</option>
-                <option>en-US-JennyNeural</option>
-                <option>en-GB-RyanNeural</option>
-                <option>en-US-StudioNeural</option>
-              </optgroup>
-              <optgroup label="日本語">
-                <option>ja-JP-NanamiNeural</option>
-                <option>ja-JP-EmuNeural</option>
-              </optgroup>
-              <optgroup label="한국어">
-                <option>ko-KR-SunHiNeural</option>
-                <option>ko-KR-InNeural</option>
-              </optgroup>
             </select>
           </div>
 
@@ -457,11 +438,45 @@
       document.getElementById("voiceRow").classList.toggle("hidden", kind !== "tts");
       document.getElementById("kindHint").textContent = t(HINTS[kind]);
       loadModels();
+      if (kind === "tts") loadVoices();
       document.querySelectorAll("#capChips .chip").forEach((c, i) => {
         const k = ["chat","image","tts","search","asr","video"][i];
         c.classList.toggle("active", k === kind || (k === "chat" && kind === "chat"));
       });
     }
+
+    async function loadVoices() {
+      const sel = document.getElementById("voice");
+      try {
+        const res = await fetch(CORE + "/forge/voices");
+        if (!res.ok) throw new Error(String(res.status));
+        const data = await res.json();
+        const voices = data.voices || {};
+        const currentLang = detectLang(promptText());
+        const list = voices[currentLang] || voices.en || [];
+        sel.innerHTML = '<option value="">auto</option>';
+        const group = document.createElement("optgroup");
+        group.label = t("t.kindTts");
+        list.forEach(v => {
+          const o = document.createElement("option");
+          o.value = v; o.textContent = v;
+          group.appendChild(o);
+        });
+        sel.appendChild(group);
+      } catch (_) {
+        sel.innerHTML = '<option value="">auto</option>';
+      }
+    }
+    function detectLang(text) {
+      for (const ch of text) {
+        const code = ch.codePointAt(0);
+        if (0x3040 <= code && code <= 0x30FF) return "ja";
+        if (0xAC00 <= code && code <= 0xD7A3) return "ko";
+        if (0x4E00 <= code && code <= 0x9FFF) return "zh";
+      }
+      return "en";
+    }
+    function promptText() { return document.getElementById("prompt").value; }
 
     async function refreshQuota() {
       const badge = document.getElementById("routerStatus");
@@ -649,6 +664,7 @@
       const btnLabel = document.querySelector("#submitBtn .label");
       if (btnLabel) btnLabel.textContent = t("t.generate");
       onKindChange(); refreshQuota(); loadCaps(); loadModels();
+      if (document.getElementById("kind").value === "tts") loadVoices();
     }
 
     function translateOptions(selectId, map) {
@@ -673,6 +689,7 @@
       document.getElementById("failoverCard").classList.add("closed");
       document.getElementById("failoverToggle").textContent = "▸ failover";
       setInterval(refreshQuota, 10000);
+      loadVoices();
     }
     init();
   </script>

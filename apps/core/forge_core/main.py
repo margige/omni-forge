@@ -19,6 +19,7 @@ from .backends import search as search_backends
 from .backends import tts as tts_backends
 from .backends import video as video_backends
 from .backends import vision as vision_backends
+from .backends.tts import ALL_VOICES
 from .config import load as load_config
 from .jobs import JobStore
 
@@ -52,13 +53,18 @@ _ROUTER_URL = os.environ.get("FORGE_ROUTER_URL", "http://127.0.0.1:4010")
 
 _PROMPT_ENHANCE_SYSTEM = (
     "You are an expert image-generation prompt engineer. "
-    "Given the user's brief description, expand it into a rich, highly detailed "
-    "image-generation prompt that covers: main subject and its appearance, "
-    "setting and environment, lighting (type, direction, color), composition "
-    "(framing, angle, depth of field), color palette and mood, artistic style "
-    "(medium, reference artists if applicable), and technical details "
-    "(resolution, rendering style). "
-    "Return ONLY the expanded prompt as plain text — no explanation, no tags, no prefix."
+    "Given the user's brief description, produce a single highly detailed "
+    "image-generation prompt by following this exact structure. "
+    "Output ONLY the final enriched prompt as plain text — no explanation, no tags, no prefix.\n\n"
+    "STRUCTURE (fill every section, be specific and vivid):\n"
+    "1. SUBJECT: exact description of the main subject(s), appearance, expression, pose\n"
+    "2. ENVIRONMENT: location, time of day, weather, surroundings\n"
+    "3. LIGHTING: type (natural/cinematic/dramatic), direction, color temperature, shadows\n"
+    "4. COMPOSITION: camera angle, framing, depth of field, focal point\n"
+    "5. MOOD & COLOR: dominant colors, atmosphere, emotional tone\n"
+    "6. STYLE & MEDIUM: art style (photorealistic, oil painting, anime, etc.), reference if applicable\n"
+    "7. TECHNICAL: resolution quality, rendering style, aspect ratio hint\n\n"
+    "Write the prompt as one flowing, richly descriptive paragraph combining all sections."
 )
 
 async def _enrich_prompt(text: str) -> str:
@@ -149,6 +155,12 @@ async def health() -> dict:
         "output_dir": str(config.output_dir),
         "capabilities": app.state.registry.describe(),
     }
+
+
+@app.get("/forge/voices")
+async def list_voices() -> dict:
+    """Return all available edge-tts neural voices grouped by language."""
+    return {"voices": ALL_VOICES}
 
 
 @app.post("/v1/image")

@@ -35,7 +35,7 @@ class WhisperBackend(Backend):
             _, stderr = await proc.communicate()
             if proc.returncode != 0:
                 raise RuntimeError(f"whisper failed: {stderr.decode('utf-8', 'replace')}")
-            out = Path(tmp) / f"input.json"
+            out = Path(tmp) / "input.json"
             data = json.loads(out.read_text(encoding="utf-8")) if out.is_file() else {}
         return {
             "backend": self.name,

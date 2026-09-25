@@ -6,7 +6,7 @@ import hashlib
 import sqlite3
 import threading
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 _SCHEMA = """
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS keys (
 
 
 def _today() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    return datetime.now(UTC).strftime("%Y-%m-%d")
 
 
 def _window() -> list[float]:

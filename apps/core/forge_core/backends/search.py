@@ -42,7 +42,7 @@ class DuckDuckGoSearchBackend(Backend):
         "https://duckduckgo.com/html/",
     )
 
-    def __init__(self, config: CoreConfig):  # noqa: ARG002 - uniform signature
+    def __init__(self, config: CoreConfig):
         self._client = httpx.AsyncClient(
             timeout=30, follow_redirects=True, headers={"user-agent": "Mozilla/5.0"}
         )
@@ -67,11 +67,11 @@ class DuckDuckGoSearchBackend(Backend):
         for block in re.split(r'class="result[ ">]', html):
             if not block.strip():
                 continue
-            title = re.search(r'result__a"[^>]*href="([^"]+)"[^>]*>(.*?)</a>', block, flags=re.S)
-            snippet = re.search(r'result__snippet"[^>]*>(.*?)</a>', block, flags=re.S)
+            title = re.search(r'result__a"[^>]*href="([^"]+)"[^>]*>(.*?)</a>', block, flags=re.DOTALL)
+            snippet = re.search(r'result__snippet"[^>]*>(.*?)</a>', block, flags=re.DOTALL)
             if not title:
                 continue
-            clean = lambda s: re.sub(r"<[^>]+>", "", s).strip()  # noqa: E731
+            clean = lambda s: re.sub(r"<[^>]+>", "", s).strip()
             t = clean(title.group(2))
             if not t:
                 continue

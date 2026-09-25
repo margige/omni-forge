@@ -14,6 +14,7 @@
     header { display: flex; align-items: baseline; gap: 12px; }
     header h1 { margin: 0 0 20px; font-size: 20px; }
     header h1 span { color: #58a6ff; }
+    .spacer { flex: 1; }
     .badge { font-size: 12px; padding: 2px 8px; border-radius: 999px; }
     .ok { background: #1f6f3f; color: #d2ffe0; }
     .down { background: #8b1e1e; color: #ffd9d9; }
@@ -40,26 +41,42 @@
 <body>
   <header>
     <h1>omni<span>-forge</span></h1>
-    <span id="routerStatus" class="badge">router …</span>
+    <span id="routerStatus" class="badge" data-i18n="routerStatusDefault">router …</span>
+    <span class="spacer"></span>
+    <span class="muted" data-i18n="langLabel">language</span>
+    <select id="lang">
+      <option value="en">English</option>
+      <option value="zh">简体中文</option>
+      <option value="ja">日本語</option>
+      <option value="ko">한국어</option>
+    </select>
   </header>
 
   <div class="grid">
     <div class="card">
-      <h2>Free-tier failover</h2>
+      <h2 data-i18n="t.failover">Free-tier failover</h2>
       <table>
-        <thead><tr><th>provider</th><th>health</th><th>requests / rpd</th><th>cooldown</th></tr></thead>
-        <tbody id="quotaRows"><tr><td colspan="4" class="muted">loading…</td></tr></tbody>
+        <thead>
+          <tr>
+            <th data-i18n="t.provider">provider</th>
+            <th data-i18n="t.health">health</th>
+            <th data-i18n="t.requests">requests / rpd</th>
+            <th data-i18n="t.cooldown">cooldown</th>
+          </tr>
+        </thead>
+        <tbody id="quotaRows"><tr><td colspan="4" class="muted" data-i18n="t.loading">loading…</td></tr></tbody>
       </table>
       <div class="muted" id="quotaNote"></div>
     </div>
 
     <div class="card">
-      <h2>Quick generation</h2>
+      <h2 data-i18n="t.quick">Quick generation</h2>
       <form id="genForm">
-        <input type="text" id="prompt" placeholder="a cyberpunk cat in the rain, neon, cinematic" />
+        <input type="text" id="prompt" data-i18n-ph="t.promptPh"
+               placeholder="a cyberpunk cat in the rain, neon, cinematic" />
         <select id="kind">
-          <option value="image">image</option>
-          <option value="tts">speech</option>
+          <option value="image" data-i18n="t.kindImage">image</option>
+          <option value="tts" data-i18n="t.kindTts">speech</option>
         </select>
         <select id="aspect">
           <option value="1:1">1:1</option>
@@ -68,7 +85,7 @@
           <option value="4:3">4:3</option>
           <option value="3:4">3:4</option>
         </select>
-        <button>generate</button>
+        <button data-i18n="t.generate">generate</button>
       </form>
       <div id="result"></div>
     </div>
@@ -77,6 +94,86 @@
   <script>
     const CORE = "http://127.0.0.1:4020";
 
+    const I18N = {
+      en: {
+        langLabel: "language", routerStatusDefault: "router …",
+        "t.failover": "Free-tier failover", "t.provider": "provider", "t.health": "health",
+        "t.requests": "requests / rpd", "t.cooldown": "cooldown", "t.loading": "loading…",
+        "t.quick": "Quick generation", "t.promptPh": "a cyberpunk cat in the rain, neon, cinematic",
+        "t.kindImage": "image", "t.kindTts": "speech", "t.generate": "generate",
+        routerOk: "router ok", routerOffline: "router offline",
+        ok: "ok", down: "down",
+        offlineRow: "router offline — run {0}",
+        quotaNote: "model: {0} — the router pounds the highest-priority free tier until it cools, then fails over.",
+        working: "working…", download: "download mp3",
+        backendImage: "backend: {0} · {1}×{2}", backendTts: "backend: {0} · voice: {1}",
+        error: "error: {0}",
+      },
+      zh: {
+        langLabel: "语言", routerStatusDefault: "路由器…",
+        "t.failover": "免费额度自动切换", "t.provider": "提供商", "t.health": "状态",
+        "t.requests": "请求 / 日额度", "t.cooldown": "冷却", "t.loading": "加载中…",
+        "t.quick": "快速生成", "t.promptPh": "雨中的赛博朋克猫，霓虹，电影感",
+        "t.kindImage": "图片", "t.kindTts": "语音", "t.generate": "生成",
+        routerOk: "路由器在线", routerOffline: "路由器离线",
+        ok: "正常", down: "失效",
+        offlineRow: "路由器离线 — 运行 {0}",
+        quotaNote: "模型：{0} — 路由器会优先使用最高优先级的免费档，额度冷却后自动切换到下一个。",
+        working: "生成中…", download: "下载 MP3",
+        backendImage: "后端：{0} · {1}×{2}", backendTts: "后端：{0} · 音色：{1}",
+        error: "错误：{0}",
+      },
+      ja: {
+        langLabel: "言語", routerStatusDefault: "ルーター…",
+        "t.failover": "無料枠フェイルオーバー", "t.provider": "プロバイダー", "t.health": "状態",
+        "t.requests": "リクエスト / 日次枠", "t.cooldown": "クールダウン", "t.loading": "読み込み中…",
+        "t.quick": "クイック生成", "t.promptPh": "雨の夜のサイバーパンク猫、ネオン、シネマティック",
+        "t.kindImage": "画像", "t.kindTts": "音声", "t.generate": "生成",
+        routerOk: "ルーター稼働中", routerOffline: "ルーター停止中",
+        ok: "正常", down: "利用不可",
+        offlineRow: "ルーター停止中 — {0} を実行",
+        quotaNote: "モデル: {0} — 最優先の無料枠を使い切り、クールダウン後に次のプロバイダーへ順次切り替えます。",
+        working: "生成中…", download: "MP3 をダウンロード",
+        backendImage: "バックエンド: {0} · {1}×{2}", backendTts: "バックエンド: {0} · 音声: {1}",
+        error: "エラー: {0}",
+      },
+      ko: {
+        langLabel: "언어", routerStatusDefault: "라우터…",
+        "t.failover": "무료 할당량 자동 전환", "t.provider": "프로바이더", "t.health": "상태",
+        "t.requests": "요청 / 일일 할당량", "t.cooldown": "쿨다운", "t.loading": "로딩 중…",
+        "t.quick": "빠른 생성", "t.promptPh": "비 속의 사이버펑크 고양이, 네온, 시네마틱",
+        "t.kindImage": "이미지", "t.kindTts": "음성", "t.generate": "생성",
+        routerOk: "라우터 정상", routerOffline: "라우터 오프라인",
+        ok: "정상", down: "장애",
+        offlineRow: "라우터 오프라인 — {0} 실행",
+        quotaNote: "모델: {0} — 최우선순위 무료 티어를 먼저 사용한 뒤 쿨다운되고, 다음 프로바이더로 자동 전환됩니다.",
+        working: "생성 중…", download: "MP3 다운로드",
+        backendImage: "백엔드: {0} · {1}×{2}", backendTts: "백엔드: {0} · 음성: {1}",
+        error: "오류: {0}",
+      },
+    };
+
+    let LANG = "en";
+    function t(key) {
+      let s = (I18N[LANG] && I18N[LANG][key]) || I18N.en[key] || key;
+      const args = Array.prototype.slice.call(arguments, 1);
+      args.forEach((a, i) => { s = s.split("{" + i + "}").join(String(a)); });
+      return s;
+    }
+
+    function applyLang() {
+      const lang = document.getElementById("lang").value;
+      LANG = lang;
+      localStorage.setItem("forge-lang", lang);
+      document.querySelectorAll("[data-i18n]").forEach((el) => {
+        el.textContent = t(el.dataset.i18n);
+      });
+      document.querySelectorAll("[data-i18n-ph]").forEach((el) => {
+        el.placeholder = t(el.dataset.i18nPh);
+      });
+      refreshQuota();
+    }
+
     async function refreshQuota() {
       const badge = document.getElementById("routerStatus");
       const rows = document.getElementById("quotaRows");
@@ -84,23 +181,23 @@
         const res = await fetch("/forge/quota");
         if (!res.ok) throw new Error(String(res.status));
         const data = await res.json();
-        badge.textContent = "router ok";
+        badge.textContent = t("routerOk");
         badge.className = "badge ok";
         rows.innerHTML = "";
         data.providers.forEach(p => {
           const tr = document.createElement("tr");
           const pct = p.rpd ? Math.min(100, (p.requests_today / p.rpd) * 100) : 0;
-          tr.innerHTML = `<td>${p.name}</td><td>${p.healthy ? '<span class="badge ok">ok</span>' : '<span class="badge down">down</span>'}</td>` +
+          tr.innerHTML = `<td>${p.name}</td>` +
+            `<td>${p.healthy ? '<span class="badge ok">' + t("ok") + '</span>' : '<span class="badge down">' + t("down") + '</span>'}</td>` +
             `<td><div class="bar"><i style="width:${pct}%"></i></div>${p.requests_today}${p.rpd ? "/" + p.rpd : ""}</td>` +
             `<td>${p.cooling_remaining}s</td>`;
           rows.appendChild(tr);
         });
-        document.getElementById("quotaNote").textContent =
-          "model: " + data.model + " — the router pounds the highest-priority free tier until it cools, then fails over.";
+        document.getElementById("quotaNote").textContent = t("quotaNote", data.model);
       } catch (err) {
-        badge.textContent = "router offline";
+        badge.textContent = t("routerOffline");
         badge.className = "badge down";
-        rows.innerHTML = `<tr><td colspan="4" class="muted">router offline — run <code>forge up</code></td></tr>`;
+        rows.innerHTML = `<tr><td colspan="4" class="muted">${t("offlineRow", "forge up")}</td></tr>`;
       }
     }
 
@@ -110,7 +207,7 @@
       const kind = document.getElementById("kind").value;
       const aspect = document.getElementById("aspect").value;
       const box = document.getElementById("result");
-      box.innerHTML = '<span class="muted">working…</span>';
+      box.innerHTML = '<span class="muted">' + t("working") + "</span>";
       try {
         const res = await fetch(`${CORE}/v1/${kind === "image" ? "image" : "tts"}`, {
           method: "POST",
@@ -120,16 +217,24 @@
         const j = await res.json();
         if (!res.ok) throw new Error(JSON.stringify(j));
         if (kind === "image") {
-          box.innerHTML = `<img class="result" src="${j.url}" alt="${prompt}"><p class="muted">backend: ${j.backend} · ${j.width}×${j.height}</p>`;
+          box.innerHTML = `<img class="result" src="${j.url}" alt="${prompt}">` +
+            `<p class="muted">${t("backendImage", j.backend, j.width, j.height)}</p>`;
         } else {
-          box.innerHTML = `<a class="muted" href="${j.url}">download mp3</a> <p class="muted">backend: ${j.backend} · voice: ${j.voice}</p>`;
+          box.innerHTML = `<a class="muted" href="${j.url}">${t("download")}</a> ` +
+            `<p class="muted">${t("backendTts", j.backend, j.voice)}</p>`;
         }
       } catch (err) {
-        box.innerHTML = `<span class="badge down">error: ${err.message}</span>`;
+        box.innerHTML = `<span class="badge down">${t("error", err.message)}</span>`;
       }
     });
 
-    refreshQuota();
+    const saved = localStorage.getItem("forge-lang");
+    const nav = (navigator.language || "en").toLowerCase();
+    document.getElementById("lang").value =
+      saved || (nav.startsWith("zh") ? "zh" : nav.startsWith("ja") ? "ja" :
+        nav.startsWith("ko") ? "ko" : "en");
+    document.getElementById("lang").addEventListener("change", applyLang);
+    applyLang();
     setInterval(refreshQuota, 10000);
   </script>
 </body>

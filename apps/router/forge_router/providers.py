@@ -65,9 +65,8 @@ class Provider:
         return len([s for s in self._window if s >= cutoff])
 
     def default_model(self, requested: str | None = None) -> str:
-        if requested and requested != "forge-chat":
-            if not self.cfg.models or requested in self.cfg.models:
-                return requested
+        if requested and requested != "forge-chat" and (not self.cfg.models or requested in self.cfg.models):
+            return requested
         if self.cfg.models:
             return self.cfg.models[0]
         return requested or "forge-chat"

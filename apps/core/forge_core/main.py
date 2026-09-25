@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import base64
-import io
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from . import __version__ as VERSION
+from .backends import Registry
 from .backends import asr as asr_backends
 from .backends import image as image_backends
 from .backends import search as search_backends
@@ -19,7 +18,6 @@ from .backends import video as video_backends
 from .backends import vision as vision_backends
 from .config import load as load_config
 from .jobs import JobStore
-from .backends import Registry
 
 config = load_config()
 app = FastAPI(title="omni-forge core", version=VERSION)

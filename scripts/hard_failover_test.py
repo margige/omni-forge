@@ -111,7 +111,7 @@ class Stub:
             try:
                 httpx.get(f"http://127.0.0.1:{self.port}/openapi.json", timeout=1)
                 break
-            except Exception:
+            except Exception:  # noqa: BLE001  retry loop: service still starting
                 time.sleep(0.05)
 
     def stop(self):
@@ -158,7 +158,7 @@ def start_router(workdir: Path, env: dict) -> subprocess.Popen:
         try:
             httpx.get(f"http://127.0.0.1:{ROUTER_PORT}/healthz", timeout=1).raise_for_status()
             return proc
-        except Exception:
+        except Exception:  # noqa: BLE001  retry loop: router still booting
             if proc.poll() is not None:
                 raise RuntimeError(f"router died: rc={proc.returncode}")
             time.sleep(0.25)

@@ -9,9 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import shlex
-import shutil
 import time
-from pathlib import Path
 
 from ..config import CoreConfig
 from ..util import media_url

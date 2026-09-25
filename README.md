@@ -4,6 +4,8 @@
 > Text · Image · Video · Speech · Vision · Search — with automatic failover across free tiers,
 > so when one model's free quota runs out, the next one picks up seamlessly.
 
+English | [简体中文](README.zh-CN.md) | [日本語](README.ja-JP.md) | [한국어](README.ko-KR.md)
+
 omni-forge turns a pile of excellent open-source projects into **one friendly app** plus a
 native **opencode integration pack**. Point your editor at a single local endpoint and forget
 about rate limits, quotas and API keys.
@@ -114,6 +116,7 @@ installers/              install.sh / install.ps1
 
 - [`docs/architecture.md`](docs/architecture.md) — how the router and core fit together
 - [`docs/free-providers.md`](docs/free-providers.md) — the free-tier pool, quotas and caveats
+- [`docs/multilingual.md`](docs/multilingual.md) — 中文 / English / 日本語 / 한국어 support
 - [`docs/roadmap.md`](docs/roadmap.md) — M0 → M4
 
 ## License

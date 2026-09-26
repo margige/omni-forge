@@ -167,6 +167,7 @@
       <select id="lang" class="lang-select">
         <option value="en">English</option>
         <option value="zh">简体中文</option>
+        <option value="zh-TW">繁體中文</option>
         <option value="ja">日本語</option>
         <option value="ko">한국어</option>
       </select>
@@ -201,33 +202,13 @@
             <select id="voiceLang" style="flex:0 0 100px">
               <option value="auto">auto</option>
               <option value="zh">中文</option>
+              <option value="zh-TW">繁體中文</option>
               <option value="en">English</option>
               <option value="ja">日本語</option>
               <option value="ko">한국어</option>
             </select>
             <select id="voice" style="flex:1;min-width:160px">
               <option value="">auto</option>
-              <optgroup label="中文">
-                <option value="zh-CN-XiaoxiaoNeural">zh-CN-XiaoxiaoNeural</option>
-                <option value="zh-CN-YunxiNeural">zh-CN-YunxiNeural</option>
-                <option value="zh-CN-YunyangNeural">zh-CN-YunyangNeural</option>
-                <option value="zh-CN-XiaoyiNeural">zh-CN-XiaoyiNeural</option>
-              </optgroup>
-              <optgroup label="English">
-                <option value="en-US-AriaNeural">en-US-AriaNeural</option>
-                <option value="en-US-JennyNeural">en-US-JennyNeural</option>
-                <option value="en-US-ChristopherNeural">en-US-ChristopherNeural</option>
-                <option value="en-GB-RyanNeural">en-GB-RyanNeural</option>
-                <option value="en-US-StudioNeural">en-US-StudioNeural</option>
-              </optgroup>
-              <optgroup label="日本語">
-                <option value="ja-JP-NanamiNeural">ja-JP-NanamiNeural</option>
-                <option value="ja-JP-EmuNeural">ja-JP-EmuNeural</option>
-              </optgroup>
-              <optgroup label="한국어">
-                <option value="ko-KR-SunHiNeural">ko-KR-SunHiNeural</option>
-                <option value="ko-KR-InNeural">ko-KR-InNeural</option>
-              </optgroup>
             </select>
           </div>
 
@@ -382,7 +363,42 @@
         hintVideo:"비디오는 FORGE_WAN_COMMAND (예: Wan 2.1) 필요.",
         missingKeys:"클라우드 프로바이더는 API 키 대기 중 — 각 사이트에서 무료 키를 받아 .env에 넣고 재시작하세요. 위 기능은 키 없이도 동작합니다.",
         generating:"비디오를 생성 중…", jobId:"작업 ID", polling:"폴링 중…",
+      },
+      "zh-TW": {
+        langLabel:"語言", routerStatusDefault:"路由器…",
+        "t.failover":"免費額度故障轉移", "t.provider":"供應商", "t.health":"狀態",
+        "t.requests":"請求 / 日額度", "t.cooldown":"冷卻中", "t.loading":"載入中…",
+        "t.quick":"快速生成", "t.promptPh":"提問或描述 — 例如：雨夜的賽博貓",
+        "t.kindChat":"對話", "t.kindImage":"圖片", "t.kindTts":"語音",
+        "t.kindSearch":"搜尋", "t.kindAsr":"轉錄", "t.kindVideo":"影片",
+        "t.generate":"生成", "t.model":"模型",
+        routerOk:"路由器運作中", routerOffline:"路由器離線",
+        ok:"正常", down:"不可用", nokey:"未設定金鑰", "local":"本地", auto:"自動故障轉移",
+        modelStateOk:"可用", modelStateDown:"暫時不可用",
+        offlineRow:"路由器離線 — 請執行 {0}",
+        quotaNote:"模型: {0} — 優先使用免費額度，用盡後冷卻再自動切換。",
+        working:"生成中…",
+        backendImage:"後端: {0} · {1}×{2}", backendTts:"後端: {0} · 音色: {1}",
+        chatProvider:"由 {0} · {1} 回應", asrResult:"識別結果（{0}）：", searchMeta:"後端: {0}",
+        error:"錯誤：{0}",
+        capOff:"{0} 暫時不可用",
+        hintChat:"對話走路由器 — 選擇下方模型，或選 forge-chat 自動故障轉移。",
+        hintImage:"圖片經 Pollinations（免費·免 Key）或本地 ComfyUI。",
+        hintTts:"語音經 edge-tts（免費·免 Key）。",
+        hintSearch:"網頁搜尋經 SearXNG / DuckDuckGo / Bing。",
+        hintAsr:"語音轉文字需要 Whisper（pip install faster-whisper 並設定 FORGE_WHISPER_BIN）。",
+        hintVideo:"影片需要 FORGE_WAN_COMMAND（如 Wan 2.1）。",
+        missingKeys:"雲端供應商等待 API Key — 到各官網註冊免費 Key 填進 .env 並重啟即可解鎖。上方功能在零 Key 下也能正常使用。",
+        generating:"正在生成影片…", jobId:"任務ID", polling:"輪詢中…",
       }
+    };
+
+    const VOICE_NAMES = {
+      zh: {"zh-CN-XiaoxiaoNeural":"小笑神经网络","zh-CN-YunxiNeural":"云希神经网络","zh-CN-YunyangNeural":"云漾神经网络","zh-CN-XiaoyiNeural":"小翼神经网络"},
+      "zh-TW": {"zh-CN-XiaoxiaoNeural":"小笑神經網絡","zh-CN-YunxiNeural":"雲希神經網絡","zh-CN-YunyangNeural":"雲漾神經網絡","zh-CN-XiaoyiNeural":"小翼神經網絡"},
+      en: {"en-US-AriaNeural":"Aria","en-US-JennyNeural":"Jenny","en-US-ChristopherNeural":"Christopher","en-GB-RyanNeural":"Ryan","en-US-StudioNeural":"Studio"},
+      ja: {"ja-JP-NanamiNeural":"七海","ja-JP-EmuNeural":"絵真"},
+      ko: {"ko-KR-SunHiNeural":"선희","ko-KR-InNeural":"인"},
     };
 
     let LANG = "en";
@@ -478,23 +494,31 @@ async function loadVoices() {
       if (!sel) return;
       try {
         const res = await fetch(CORE + "/forge/voices");
-        if (res.ok) {
-          const data = await res.json();
-          const voices = data.voices || {};
-          const langSel = document.getElementById("voiceLang");
-          const lang = langSel.value;
-          let list;
-          if (lang === "auto") {
-            list = voices[detectLang(document.getElementById("prompt").value)] || voices.en || [];
-          } else {
-            list = voices[lang] || voices.en || [];
-          }
-          sel.innerHTML = '<option value="">auto</option>';
-          const group = document.createElement("optgroup");
-          group.label = lang === "zh" ? "中文" : lang === "ja" ? "日本語" : lang === "ko" ? "한국어" : "English";
-          list.forEach(v => { const o = document.createElement("option"); o.value = v; o.textContent = v; group.appendChild(o); });
-          sel.appendChild(group);
+        if (!res.ok) throw new Error(String(res.status));
+        const data = await res.json();
+        const voices = data.voices || {};
+        const voiceLang = document.getElementById("voiceLang").value;
+        const uiLang = document.getElementById("lang").value;
+        const promptText = document.getElementById("prompt").value;
+        let targetLang;
+        if (voiceLang === "auto") {
+          targetLang = detectLang(promptText);
+        } else {
+          targetLang = voiceLang;
         }
+        const list = voices[targetLang] || voices.en || [];
+        const langLabel = targetLang === "zh" ? "中文" : targetLang === "zh-TW" ? "繁體中文" : targetLang === "ja" ? "日本語" : targetLang === "ko" ? "한국어" : targetLang === "en" ? "English" : targetLang;
+        sel.innerHTML = "";
+        const group = document.createElement("optgroup");
+        group.label = langLabel;
+        list.forEach(v => {
+          const o = document.createElement("option");
+          o.value = v;
+          const displayName = (VOICE_NAMES[uiLang] && VOICE_NAMES[uiLang][v]) || v;
+          o.textContent = displayName !== v ? displayName + " (" + v + ")" : v;
+          group.appendChild(o);
+        });
+        sel.appendChild(group);
       } catch (_) {}
     }
     function detectLang(text) {
@@ -724,14 +748,10 @@ async function loadVoices() {
     }
 
     async function init() {
-      onKindChange();
-      refreshQuota();
-      loadCaps();
-      loadModels();
+      await applyLang();
       document.getElementById("failoverCard").classList.add("closed");
       document.getElementById("failoverToggle").textContent = "▸ failover";
       setInterval(refreshQuota, 10000);
-      loadVoices();
     }
     init();
   </script>

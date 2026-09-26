@@ -207,6 +207,27 @@
             </select>
             <select id="voice" style="flex:1;min-width:160px">
               <option value="">auto</option>
+              <optgroup label="中文">
+                <option value="zh-CN-XiaoxiaoNeural">zh-CN-XiaoxiaoNeural</option>
+                <option value="zh-CN-YunxiNeural">zh-CN-YunxiNeural</option>
+                <option value="zh-CN-YunyangNeural">zh-CN-YunyangNeural</option>
+                <option value="zh-CN-XiaoyiNeural">zh-CN-XiaoyiNeural</option>
+              </optgroup>
+              <optgroup label="English">
+                <option value="en-US-AriaNeural">en-US-AriaNeural</option>
+                <option value="en-US-JennyNeural">en-US-JennyNeural</option>
+                <option value="en-US-ChristopherNeural">en-US-ChristopherNeural</option>
+                <option value="en-GB-RyanNeural">en-GB-RyanNeural</option>
+                <option value="en-US-StudioNeural">en-US-StudioNeural</option>
+              </optgroup>
+              <optgroup label="日本語">
+                <option value="ja-JP-NanamiNeural">ja-JP-NanamiNeural</option>
+                <option value="ja-JP-EmuNeural">ja-JP-EmuNeural</option>
+              </optgroup>
+              <optgroup label="한국어">
+                <option value="ko-KR-SunHiNeural">ko-KR-SunHiNeural</option>
+                <option value="ko-KR-InNeural">ko-KR-InNeural</option>
+              </optgroup>
             </select>
           </div>
 
@@ -452,38 +473,29 @@
       });
     }
 
-    const VOICE_FALLBACK = {
-      zh: ["zh-CN-XiaoxiaoNeural","zh-CN-YunxiNeural","zh-CN-YunyangNeural","zh-CN-XiaoyiNeural"],
-      en: ["en-US-AriaNeural","en-US-JennyNeural","en-US-ChristopherNeural","en-GB-RyanNeural","en-US-StudioNeural"],
-      ja: ["ja-JP-NanamiNeural","ja-JP-EmuNeural"],
-      ko: ["ko-KR-SunHiNeural","ko-KR-InNeural"],
-    };
-
-    async function loadVoices() {
+async function loadVoices() {
       const sel = document.getElementById("voice");
-      const langSel = document.getElementById("voiceLang");
       if (!sel) return;
-      let list = [];
       try {
         const res = await fetch(CORE + "/forge/voices");
         if (res.ok) {
           const data = await res.json();
           const voices = data.voices || {};
+          const langSel = document.getElementById("voiceLang");
           const lang = langSel.value;
+          let list;
           if (lang === "auto") {
-            const detected = detectLang(document.getElementById("prompt").value);
-            list = voices[detected] || voices.en || [];
+            list = voices[detectLang(document.getElementById("prompt").value)] || voices.en || [];
           } else {
             list = voices[lang] || voices.en || [];
           }
+          sel.innerHTML = '<option value="">auto</option>';
+          const group = document.createElement("optgroup");
+          group.label = lang === "zh" ? "中文" : lang === "ja" ? "日本語" : lang === "ko" ? "한국어" : "English";
+          list.forEach(v => { const o = document.createElement("option"); o.value = v; o.textContent = v; group.appendChild(o); });
+          sel.appendChild(group);
         }
       } catch (_) {}
-      if (!list.length) list = VOICE_FALLBACK.en;
-      sel.innerHTML = '<option value="">auto</option>';
-      const group = document.createElement("optgroup");
-      group.label = "Voice";
-      list.forEach(v => { const o = document.createElement("option"); o.value = v; o.textContent = v; group.appendChild(o); });
-      sel.appendChild(group);
     }
     function detectLang(text) {
       for (let i = 0; i < text.length; i++) {
@@ -495,6 +507,7 @@
       return "en";
     }
 
+    document.getElementById("voiceLang").addEventListener("change", loadVoices);
     document.getElementById("prompt").addEventListener("input", () => {
       if (document.getElementById("voiceLang").value === "auto") loadVoices();
     });

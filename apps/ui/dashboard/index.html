@@ -685,12 +685,20 @@ async function loadVoices() {
 
     const saved = localStorage.getItem("forge-lang");
     const nav = (navigator.language || "en").toLowerCase();
-    document.getElementById("lang").value = saved || (nav.startsWith("zh") ? "zh" : nav.startsWith("ja") ? "ja" : nav.startsWith("ko") ? "ko" : "en");
+    const uiLang = saved || (nav.startsWith("zh") ? "zh" : nav.startsWith("ja") ? "ja" : nav.startsWith("ko") ? "ko" : "en");
+    document.getElementById("lang").value = uiLang;
+    document.getElementById("voiceLang").value = uiLang;
     document.getElementById("lang").addEventListener("change", applyLang);
+    document.getElementById("voiceLang").addEventListener("change", function() {
+      localStorage.setItem("forge-voice-lang", this.value);
+      if (document.getElementById("kind").value === "tts") loadVoices();
+    });
 
     async function applyLang() {
       LANG = document.getElementById("lang").value;
       localStorage.setItem("forge-lang", LANG);
+      document.getElementById("voiceLang").value = LANG;
+      localStorage.setItem("forge-voice-lang", LANG);
       document.querySelectorAll("[data-i18n]").forEach(el => el.textContent = t(el.dataset.i18n));
       document.querySelectorAll("[data-i18n-ph]").forEach(el => el.placeholder = t(el.dataset.i18nPh));
       translateOptions("kind", {chat:t("t.kindChat"),image:t("t.kindImage"),tts:t("t.kindTts"),search:t("t.kindSearch"),asr:t("t.kindAsr"),video:t("t.kindVideo")});
